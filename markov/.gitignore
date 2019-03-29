@@ -1,8 +1,6 @@
 output
 lib
 build
+gradle
 .gradle
 .idea
-expDataEpisodes.csv
-expDataSteps.csv
-gradle
