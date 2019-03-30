@@ -27,4 +27,16 @@ public class ValueIterationPlannerFactory implements IMyPlannerFactory {
     public Planner getPlanner(SADomain domain, HashableStateFactory hashingFactory) {
         return new ValueIteration(domain, gamma, hashingFactory, maxDelta, maxIterations);
     }
+
+    @Override
+    public void saveToFile(Planner planner, String fileName) {
+        ((ValueIteration)planner).writeValueTable(fileName);
+    }
+
+    @Override
+    public Planner loadFromFile(Planner planner, String fileName) {
+        ValueIteration vi = (ValueIteration)planner;
+        vi.loadValueTable(fileName);
+        return vi;
+    }
 }

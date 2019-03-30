@@ -7,4 +7,6 @@ import burlap.statehashing.HashableStateFactory;
 public interface IMyPlannerFactory {
     String getPlannerName();
     Planner getPlanner(SADomain domain, HashableStateFactory hashingFactory);
+    void saveToFile(Planner planner, String fileName);
+    Planner loadFromFile(Planner planner, String fileName);
 }

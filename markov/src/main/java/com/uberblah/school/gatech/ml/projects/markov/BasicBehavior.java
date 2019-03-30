@@ -17,7 +17,7 @@ import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
-import burlap.behavior.singleagent.planning.stochastic.policyiteration.PolicyIteration;
+import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
@@ -51,7 +51,7 @@ import java.util.List;
 
 public class BasicBehavior {
 
-    private static final String caseDelimiter = "::";
+    private static final String caseDelimiter = "-";
     private String buildCaseName(String... parts) {
         return String.join(caseDelimiter, parts);
     }
@@ -263,6 +263,11 @@ public class BasicBehavior {
         example.evaluatePlanner(
                 new BoringEnvironment(),
                 PolicyIterationPlannerFactory.builder().build(),
+                outputPath
+        );
+        example.evaluatePlanner(
+                new BoringEnvironment(),
+                ValueIterationPlannerFactory.builder().build(),
                 outputPath
         );
 

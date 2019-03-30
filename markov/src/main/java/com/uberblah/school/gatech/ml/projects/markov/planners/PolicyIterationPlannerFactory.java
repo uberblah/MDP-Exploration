@@ -32,4 +32,17 @@ public class PolicyIterationPlannerFactory implements IMyPlannerFactory {
         return new PolicyIteration(
                 domain, gamma, hashingFactory, maxPIDelta, maxEvalDelta, maxEvaluationIterations, maxPolicyIterations);
     }
+
+    @Override
+    public void saveToFile(Planner planner, String fileName) {
+        PolicyIteration pi = (PolicyIteration)planner;
+        pi.writeValueTable(fileName);
+    }
+
+    @Override
+    public Planner loadFromFile(Planner planner, String fileName) {
+        PolicyIteration pi = (PolicyIteration)planner;
+        pi.loadValueTable(fileName);
+        return pi;
+    }
 }
