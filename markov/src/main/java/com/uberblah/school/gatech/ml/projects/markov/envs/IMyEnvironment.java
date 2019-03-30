@@ -1,10 +1,10 @@
-import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
+package com.uberblah.school.gatech.ml.projects.markov.envs;
+
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.statehashing.HashableStateFactory;
 
 public interface IMyEnvironment {
     String getEnvironmentName();
-    StateConditionTest getStateConditionTest();
     SimulatedEnvironment getSimulatedEnvironment();
     HashableStateFactory getHashableStateFactory();
 }

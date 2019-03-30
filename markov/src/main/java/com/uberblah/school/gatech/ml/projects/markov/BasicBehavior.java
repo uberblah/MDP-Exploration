@@ -1,3 +1,5 @@
+package com.uberblah.school.gatech.ml.projects.markov;
+
 import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.PolicyUtils;
@@ -16,7 +18,6 @@ import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
 import burlap.behavior.singleagent.planning.stochastic.policyiteration.PolicyIteration;
-import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
@@ -36,6 +37,13 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import burlap.visualizer.Visualizer;
+import com.uberblah.school.gatech.ml.projects.markov.envs.DelayedGratificationEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.envs.LavaBridgeEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.envs.SecretPassageEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 
 import java.awt.*;
 import java.util.List;
@@ -75,9 +83,9 @@ public class BasicBehavior {
         new EpisodeSequenceVisualizer(v, domain, outputpath);
     }
 
-    public void valueIterationExample(String outputPath){
+    public void valueIterationExample(IMyPlannerFactory plannerFactory, String outputPath){
 
-        Planner planner = new ValueIteration(domain, 0.99, hashingFactory, 0.001, 100);
+        Planner planner = plannerFactory.getPlanner(domain, hashingFactory);
         Policy p = planner.planFromState(initialState);
 
         PolicyUtils.rollout(p, initialState, domain.getModel()).write(outputPath + "vi");
@@ -203,22 +211,8 @@ public class BasicBehavior {
         };
 
         IMyPlannerFactory[] planners = {
-                new IMyPlannerFactory() {
-                    public String getPlannerName() {
-                        return "ValueIteration";
-                    }
-                    public Planner getPlanner() {
-                        return null;
-                    }
-                },
-                new IMyPlannerFactory() {
-                    public String getPlannerName() {
-                        return "PolicyIteration";
-                    }
-                    public Planner getPlanner() {
-                        return null;
-                    }
-                }
+                ValueIterationPlannerFactory.builder().build(),
+                PolicyIterationPlannerFactory.builder().build()
         };
 
         LearningAgentFactory[] learners = {

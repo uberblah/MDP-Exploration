@@ -1,3 +1,5 @@
+package com.uberblah.school.gatech.ml.projects.markov.envs;
+
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -12,16 +14,11 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 
-public class SecretPassageEnvironment implements IMyEnvironment {
+public class LavaBridgeEnvironment implements IMyEnvironment {
 
     @Override
     public String getEnvironmentName() {
-        return "SecretPassage";
-    }
-
-    @Override
-    public StateConditionTest getStateConditionTest() {
-        return null;
+        return "LavaBridge";
     }
 
     @Override
