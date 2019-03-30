@@ -37,6 +37,7 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import burlap.visualizer.Visualizer;
+import com.uberblah.school.gatech.ml.projects.markov.envs.BoringEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.DelayedGratificationEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.LavaBridgeEnvironment;
@@ -49,6 +50,11 @@ import java.awt.Color;
 import java.util.List;
 
 public class BasicBehavior {
+
+    private static final String caseDelimiter = "::";
+    private String buildCaseName(String... parts) {
+        return String.join(caseDelimiter, parts);
+    }
 
     private GridWorldDomain gwdg;
     private OOSADomain domain;
@@ -83,24 +89,16 @@ public class BasicBehavior {
         new EpisodeSequenceVisualizer(v, domain, outputpath);
     }
 
-    public void valueIterationExample(IMyPlannerFactory plannerFactory, String outputPath){
+    public void evaluatePlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+
+        String caseName = buildCaseName(env.getEnvironmentName(), plannerFactory.getPlannerName());
+        System.out.println(caseName);
 
         Planner planner = plannerFactory.getPlanner(domain, hashingFactory);
         Policy p = planner.planFromState(initialState);
 
-        PolicyUtils.rollout(p, initialState, domain.getModel()).write(outputPath + "vi");
-
-        simpleValueFunctionVis((ValueFunction)planner, p);
-        //manualValueFunctionVis((ValueFunction)planner, p);
-
-    }
-
-    public void policyIterationExample(String outputPath) {
-
-        Planner planner = new PolicyIteration(domain, 0.99, hashingFactory, 0.001, 100, 100);
-        Policy p = planner.planFromState(initialState);
-
-        PolicyUtils.rollout(p, initialState, domain.getModel()).write(outputPath + "vi");
+        PolicyUtils.rollout(p, initialState, domain.getModel())
+                .write(outputPath + caseName);
 
         simpleValueFunctionVis((ValueFunction)planner, p);
         //manualValueFunctionVis((ValueFunction)planner, p);
@@ -166,7 +164,7 @@ public class BasicBehavior {
         //different reward function for more structured performance plots
         ((FactoredModel)domain.getModel()).setRf(new GoalBasedRF(this.goalCondition, 5.0, -0.1));
 
-        /**
+        /*
          * Create factories for Q-learning agents
          */
         LearningAgentFactory epsilonQFactory = new LearningAgentFactory() {
@@ -262,7 +260,13 @@ public class BasicBehavior {
         BasicBehavior example = new BasicBehavior();
         String outputPath = "output/";
 
-        example.experiment(outputPath);
+        example.evaluatePlanner(
+                new BoringEnvironment(),
+                PolicyIterationPlannerFactory.builder().build(),
+                outputPath
+        );
+
+//        example.experiment(outputPath);
 
 //        example.experimentAndPlotter(outputPath);
 

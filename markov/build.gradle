@@ -27,5 +27,5 @@ task buildAll {
 }
 
 application {
-    mainClassName = 'BasicBehavior'
+    mainClassName = 'com.uberblah.school.gatech.ml.projects.markov.BasicBehavior'
 }

@@ -6,19 +6,15 @@ import burlap.mdp.singleagent.SADomain;
 import burlap.statehashing.HashableStateFactory;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NonNull;
 
 @Getter
 @Builder
 public class ValueIterationPlannerFactory implements IMyPlannerFactory {
 
-    @NonNull
     @Builder.Default
     private double gamma = 0.99;
-    @NonNull
     @Builder.Default
     private double maxDelta = 0.001;
-    @NonNull
     @Builder.Default
     private int maxIterations = 100;
 
