@@ -45,7 +45,7 @@ import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 public class BasicBehavior {

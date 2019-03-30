@@ -13,7 +13,6 @@ import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
-import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
 
 public class DelayedGratificationEnvironment implements IMyEnvironment {
 
