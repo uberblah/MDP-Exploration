@@ -1,3 +1,4 @@
+import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.policy.PolicyUtils;
 import burlap.behavior.singleagent.auxiliary.EpisodeSequenceVisualizer;
@@ -49,7 +50,6 @@ public class BasicBehavior {
     private HashableStateFactory hashingFactory;
     private SimulatedEnvironment env;
 
-
     public BasicBehavior(){
         gwdg = new GridWorldDomain(11, 11);
         gwdg.setMapToFourRooms();
@@ -69,7 +69,6 @@ public class BasicBehavior {
         //observer.initGUI();
         //env.addObservers(observer);
     }
-
 
     public void visualize(String outputpath){
         Visualizer v = GridWorldVisualizer.getVisualizer(gwdg.getMap());
@@ -143,7 +142,6 @@ public class BasicBehavior {
         spp.setActionNameGlyphPainter(GridWorldDomain.ACTION_WEST, new ArrowActionGlyph(3));
         spp.setRenderStyle(PolicyGlyphPainter2D.PolicyGlyphRenderStyle.DISTSCALED);
 
-
         //add our policy renderer to it
         gui.setSpp(spp);
         gui.setPolicy(p);
@@ -153,13 +151,9 @@ public class BasicBehavior {
 
         //start it
         gui.initGUI();
-
-
-
     }
 
-
-    public void experimentAndPlotter(){
+    public void experimentAndPlotter(String outputPath){
 
         //different reward function for more structured performance plots
         ((FactoredModel)domain.getModel()).setRf(new GoalBasedRF(this.goalCondition, 5.0, -0.1));
@@ -167,49 +161,116 @@ public class BasicBehavior {
         /**
          * Create factories for Q-learning agents
          */
-        LearningAgentFactory basicQFactory = new LearningAgentFactory() {
-
+        LearningAgentFactory epsilonQFactory = new LearningAgentFactory() {
             public String getAgentName() {
-                return "Basic Q";
+                return "Epsilon Q";
             }
-
-
             public LearningAgent generateAgent() {
-                return new QLearning(domain, 0.99, hashingFactory, 0.3, 0.1);
+                return new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
             }
         };
 
         LearningAgentFactory optimisticQFactory = new LearningAgentFactory() {
-
             public String getAgentName() {
                 return "Optimistic Q";
             }
-
-
             public LearningAgent generateAgent() {
-                return new QLearning(domain, 0.99, hashingFactory, 5.0, 0.1);
+                QLearning agent = new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                agent.setLearningPolicy(new GreedyQPolicy(agent));
+                return agent;
             }
         };
 
         LearningAlgorithmExperimenter exp = new LearningAlgorithmExperimenter(
-                env, 10, 100, basicQFactory, optimisticQFactory);
-        exp.setUpPlottingConfiguration(500, 250, 2, 1000,
+                env, 50, 100, epsilonQFactory, optimisticQFactory);
+        exp.setUpPlottingConfiguration(
+                500, 250, 2, 1000,
                 TrialMode.MOST_RECENT_AND_AVERAGE,
                 PerformanceMetric.CUMULATIVE_STEPS_PER_EPISODE,
-                PerformanceMetric.AVERAGE_EPISODE_REWARD);
+                PerformanceMetric.AVERAGE_EPISODE_REWARD
+        );
 
         exp.startExperiment();
-        exp.writeStepAndEpisodeDataToCSV("expData");
-
+        exp.writeStepAndEpisodeDataToCSV(outputPath + "expData");
     }
 
+    public void experiment(String outputPath) {
+
+        IMyEnvironment[] envs = {
+                new DelayedGratificationEnvironment(),
+                new LavaBridgeEnvironment(),
+                new SecretPassageEnvironment()
+        };
+
+        IMyPlannerFactory[] planners = {
+                new IMyPlannerFactory() {
+                    public String getPlannerName() {
+                        return "ValueIteration";
+                    }
+                    public Planner getPlanner() {
+                        return null;
+                    }
+                },
+                new IMyPlannerFactory() {
+                    public String getPlannerName() {
+                        return "PolicyIteration";
+                    }
+                    public Planner getPlanner() {
+                        return null;
+                    }
+                }
+        };
+
+        LearningAgentFactory[] learners = {
+                new LearningAgentFactory() {
+                    public String getAgentName() {
+                        return "Epsilon Q";
+                    }
+                    public LearningAgent generateAgent() {
+                        return new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                    }
+                },
+                new LearningAgentFactory() {
+                    public String getAgentName() {
+                        return "Optimistic Q";
+                    }
+                    public LearningAgent generateAgent() {
+                        QLearning agent = new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                        agent.setLearningPolicy(new GreedyQPolicy(agent));
+                        return agent;
+                    }
+                }
+        };
+
+        for (IMyEnvironment myEnv : envs) {
+            for (IMyPlannerFactory myPlanner : planners) {
+                /*
+                TODO: TRAIN THE PLANNER
+                iterations to convergence
+                time to convergence
+                what the planner converged to
+                 */
+            }
+            // TODO: DO THE EXPERIMENT WITH THE LEARNERS
+            for (LearningAgentFactory agentFactory : learners) {
+                /*
+                TODO: TRAIN THE LEARNER
+                episodes to convergence
+                time to convergence
+                what the learner converged to
+                 */
+            }
+        }
+    }
 
     public static void main(String[] args) {
 
         BasicBehavior example = new BasicBehavior();
         String outputPath = "output/";
 
-        example.experimentAndPlotter();
+        example.experiment(outputPath);
+
+//        example.experimentAndPlotter(outputPath);
 
 //        example.visualize(outputPath);
 
