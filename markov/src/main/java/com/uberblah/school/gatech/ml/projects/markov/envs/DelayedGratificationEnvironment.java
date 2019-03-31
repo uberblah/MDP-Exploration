@@ -4,7 +4,6 @@ import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
-import burlap.domain.singleagent.gridworld.state.GridLocation;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
 import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
 import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
@@ -23,6 +22,8 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     private int nOptions;
     private Function<Integer, Double> punishmentCurve;
     private Function<Integer, Double> rewardCurve;
+    private int width;
+    private int height;
 
     private GridWorldDomain gwdg;
     private GridWorldRewardFunction gwrf;
@@ -41,6 +42,8 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
         this.nOptions = nOptions;
         this.punishmentCurve = punishmentCurve;
         this.rewardCurve = rewardCurve;
+        this.width = nOptions;
+        this.height = 2;
 
         gwdg = new GridWorldDomain(nOptions, 2);
         gwrf = new GridWorldRewardFunction(nOptions, 2);
@@ -70,25 +73,5 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     @Override
     public String getEnvironmentName() {
         return "DelayedGratification";
-    }
-
-    @Override
-    public OOSADomain getDomain() {
-        return domain;
-    }
-
-    @Override
-    public State getInitialState() {
-        return initialState;
-    }
-
-    @Override
-    public SimulatedEnvironment getSimulatedEnvironment() {
-        return env;
-    }
-
-    @Override
-    public HashableStateFactory getHashableStateFactory() {
-        return hashingFactory;
     }
 }

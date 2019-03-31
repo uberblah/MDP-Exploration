@@ -17,7 +17,6 @@ import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
-import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
@@ -37,24 +36,15 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import burlap.visualizer.Visualizer;
-import com.uberblah.school.gatech.ml.projects.markov.envs.BoringEnvironment;
-import com.uberblah.school.gatech.ml.projects.markov.envs.DelayedGratificationEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
-import com.uberblah.school.gatech.ml.projects.markov.envs.LavaBridgeEnvironment;
-import com.uberblah.school.gatech.ml.projects.markov.envs.SecretPassageEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
-import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
-import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 
 import java.awt.Color;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class BasicBehavior {
-
-    private static final String caseDelimiter = "-";
-    private String buildCaseName(String... parts) {
-        return String.join(caseDelimiter, parts);
-    }
 
     private GridWorldDomain gwdg;
     private OOSADomain domain;
@@ -63,6 +53,8 @@ public class BasicBehavior {
     private State initialState;
     private HashableStateFactory hashingFactory;
     private SimulatedEnvironment env;
+
+    private ExperimentModule module;
 
     public BasicBehavior(){
         gwdg = new GridWorldDomain(11, 11);
@@ -77,7 +69,7 @@ public class BasicBehavior {
 
         env = new SimulatedEnvironment(domain, initialState);
 
-
+        module = new MyExperimentModule();
         //VisualActionObserver observer = new VisualActionObserver(domain,
         //	GridWorldVisualizer.getVisualizer(gwdg.getMap()));
         //observer.initGUI();
@@ -89,41 +81,43 @@ public class BasicBehavior {
         new EpisodeSequenceVisualizer(v, domain, outputpath);
     }
 
+    public Path casePath(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath) {
+        return Paths.get(outputPath, env.getEnvironmentName(), plannerFactory.getPlannerName());
+    }
+
     public void evaluatePlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+        Path casePath = casePath(env, plannerFactory, outputPath);
+        System.out.println(String.format("EVALUATING CASE %s", casePath));
 
-        String caseName = buildCaseName(env.getEnvironmentName(), plannerFactory.getPlannerName());
-        System.out.println(caseName);
-
-        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashableStateFactory());
+        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashingFactory());
         Policy p = planner.planFromState(env.getInitialState());
 
         PolicyUtils.rollout(p, env.getInitialState(), env.getDomain().getModel())
-                .write(outputPath + buildCaseName(caseName, "Data"));
-        plannerFactory.saveToFile(planner, outputPath + buildCaseName(caseName, "Planner"));
+                .write(casePath + ".episode");
+        plannerFactory.saveToFile(planner, casePath + ".planner");
 
-        simpleValueFunctionVis((ValueFunction)planner, p);
+        visualizePlanner(env, planner);
         //manualValueFunctionVis((ValueFunction)planner, p);
     }
 
-    public Planner loadPlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+    public void savePlanner(IMyEnvironment env, IMyPlannerFactory factory, Planner planner, String outputPath) {
+        Path casePath = casePath(env, factory, outputPath);
+        factory.saveToFile(planner, casePath + ".planner");
+    }
 
-        String caseName = buildCaseName(env.getEnvironmentName(), plannerFactory.getPlannerName());
-        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashableStateFactory());
-        plannerFactory.loadFromFile(planner, outputPath + buildCaseName(caseName, "Planner"));
+    public Planner loadPlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+        Path casePath = casePath(env, plannerFactory, outputPath);
+        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashingFactory());
+        plannerFactory.loadFromFile(planner, casePath + ".planner");
         return planner;
     }
 
     public void visualizePlanner(IMyEnvironment env, Planner planner) {
         Policy p = planner.planFromState(env.getInitialState());
-        simpleValueFunctionVis((ValueFunction)planner, p);
-    }
-
-    public void simpleValueFunctionVis(ValueFunction valueFunction, Policy p){
-
         List<State> allStates = StateReachability.getReachableStates(
-                initialState, domain, hashingFactory);
+                env.getInitialState(), env.getDomain(), env.getHashingFactory());
         ValueFunctionVisualizerGUI gui = GridWorldDomain.getGridWorldValueFunctionVisualization(
-                allStates, 11, 11, valueFunction, p);
+                allStates, env.getWidth(), env.getHeight(), (ValueFunction)planner, p);
         gui.initGUI();
 
     }
@@ -228,56 +222,15 @@ public class BasicBehavior {
         exp.writeStepAndEpisodeDataToCSV(outputPath + "expData");
     }
 
-    public void experiment(String outputPath) {
+    public void experiment(String outputRoot) {
 
-        IMyEnvironment[] envs = {
-                new BoringEnvironment(),
-                new DelayedGratificationEnvironment(),
-//                new LavaBridgeEnvironment(),
-//                new SecretPassageEnvironment()
-        };
-
-        IMyPlannerFactory[] planners = {
-                ValueIterationPlannerFactory.builder().build(),
-                PolicyIterationPlannerFactory.builder().build()
-        };
-
-        LearningAgentFactory[] learners = {
-                new LearningAgentFactory() {
-                    public String getAgentName() {
-                        return "Epsilon Q";
-                    }
-                    public LearningAgent generateAgent() {
-                        return new QLearning(
-                                domain,
-                                0.999,
-                                hashingFactory,
-                                0.0,
-                                0.9,
-                                1000
-                        );
-                    }
-                },
-                new LearningAgentFactory() {
-                    public String getAgentName() {
-                        return "Optimistic Q";
-                    }
-                    public LearningAgent generateAgent() {
-                        QLearning agent = new QLearning(
-                                domain,
-                                0.999,
-                                hashingFactory,
-                                0.0,
-                                0.9,
-                                1000
-                        );
-                        agent.setLearningPolicy(new GreedyQPolicy(agent));
-                        return agent;
-                    }
-                }
-        };
+        IMyEnvironment[] envs = module.getEnvironments();
+        IMyPlannerFactory[] planners = module.getPlanners();
 
         for (IMyEnvironment myEnv : envs) {
+            String envRoot = outputRoot + myEnv.getEnvironmentName() + "/";
+            LearningAgentFactory[] learners = module.getLearners(myEnv.getDomain(), myEnv.getHashingFactory());
+
             for (IMyPlannerFactory myPlanner : planners) {
                 /*
                 TODO: TRAIN THE PLANNER
@@ -285,7 +238,7 @@ public class BasicBehavior {
                 time to convergence
                 what the planner converged to
                  */
-                evaluatePlanner(myEnv, myPlanner, outputPath);
+                evaluatePlanner(myEnv, myPlanner, envRoot);
             }
             // TODO: DO THE EXPERIMENT WITH THE LEARNERS
             for (LearningAgentFactory agentFactory : learners) {
@@ -319,7 +272,7 @@ public class BasicBehavior {
 
 //        example.experimentAndPlotter(outputPath);
 
-//        example.visualize(outputPath);
+        example.visualize(outputPath);
 
     }
 

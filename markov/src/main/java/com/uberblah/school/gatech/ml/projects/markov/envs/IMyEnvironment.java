@@ -9,6 +9,8 @@ public interface IMyEnvironment {
     String getEnvironmentName();
     OOSADomain getDomain();
     State getInitialState();
-    SimulatedEnvironment getSimulatedEnvironment();
-    HashableStateFactory getHashableStateFactory();
+    SimulatedEnvironment getEnv();
+    HashableStateFactory getHashingFactory();
+    int getWidth();
+    int getHeight();
 }

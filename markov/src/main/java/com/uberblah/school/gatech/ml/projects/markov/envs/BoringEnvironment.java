@@ -19,8 +19,8 @@ import lombok.Getter;
 
 @Getter
 public class BoringEnvironment implements IMyEnvironment {
-    private final int w = 11;
-    private final int h = 11;
+    private final int width = 11;
+    private final int height = 11;
 
     private GridWorldDomain gwdg;
     private OOSADomain domain;
@@ -53,25 +53,5 @@ public class BoringEnvironment implements IMyEnvironment {
     @Override
     public String getEnvironmentName() {
         return "Boring";
-    }
-
-    @Override
-    public OOSADomain getDomain() {
-        return domain;
-    }
-
-    @Override
-    public State getInitialState() {
-        return initialState;
-    }
-
-    @Override
-    public SimulatedEnvironment getSimulatedEnvironment() {
-        return env;
-    }
-
-    @Override
-    public HashableStateFactory getHashableStateFactory() {
-        return hashingFactory;
     }
 }
