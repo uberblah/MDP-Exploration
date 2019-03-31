@@ -35,8 +35,7 @@ public class PolicyIterationPlannerFactory implements IMyPlannerFactory {
 
     @Override
     public void saveToFile(Planner planner, String fileName) {
-        PolicyIteration pi = (PolicyIteration)planner;
-        pi.writeValueTable(fileName);
+        ((PolicyIteration)planner).writeValueTable(fileName);
     }
 
     @Override

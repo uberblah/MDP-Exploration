@@ -9,12 +9,18 @@ import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
 import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
 import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.state.State;
+import burlap.mdp.singleagent.common.GoalBasedRF;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
+import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import lombok.Getter;
 
+@Getter
 public class BoringEnvironment implements IMyEnvironment {
+    private final int w = 11;
+    private final int h = 11;
 
     private GridWorldDomain gwdg;
     private OOSADomain domain;
@@ -25,14 +31,20 @@ public class BoringEnvironment implements IMyEnvironment {
     private SimulatedEnvironment env;
 
     public BoringEnvironment() {
-        gwdg = new GridWorldDomain(11, 11);
+        this(11, 11);
+    }
+
+    public BoringEnvironment(int w, int h) {
+        gwdg = new GridWorldDomain(w, h);
         gwdg.setMapToFourRooms();
-        tf = new GridWorldTerminalFunction(10, 10);
+        tf = new GridWorldTerminalFunction(w-1, h-1);
         gwdg.setTf(tf);
         goalCondition = new TFGoalCondition(tf);
         domain = gwdg.generateDomain();
+        ((FactoredModel)domain.getModel()).setRf(
+                new GoalBasedRF(this.goalCondition, 5.0, -0.1));
 
-        initialState = new GridWorldState(new GridAgent(0, 0), new GridLocation(10, 10, "loc0"));
+        initialState = new GridWorldState(new GridAgent(0, 0), new GridLocation(w-1, h-1, "loc0"));
         hashingFactory = new SimpleHashableStateFactory();
 
         env = new SimulatedEnvironment(domain, initialState);
@@ -41,6 +53,16 @@ public class BoringEnvironment implements IMyEnvironment {
     @Override
     public String getEnvironmentName() {
         return "Boring";
+    }
+
+    @Override
+    public OOSADomain getDomain() {
+        return domain;
+    }
+
+    @Override
+    public State getInitialState() {
+        return initialState;
     }
 
     @Override

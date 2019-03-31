@@ -94,14 +94,28 @@ public class BasicBehavior {
         String caseName = buildCaseName(env.getEnvironmentName(), plannerFactory.getPlannerName());
         System.out.println(caseName);
 
-        Planner planner = plannerFactory.getPlanner(domain, hashingFactory);
-        Policy p = planner.planFromState(initialState);
+        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashableStateFactory());
+        Policy p = planner.planFromState(env.getInitialState());
 
-        PolicyUtils.rollout(p, initialState, domain.getModel())
-                .write(outputPath + caseName);
+        PolicyUtils.rollout(p, env.getInitialState(), env.getDomain().getModel())
+                .write(outputPath + buildCaseName(caseName, "Data"));
+        plannerFactory.saveToFile(planner, outputPath + buildCaseName(caseName, "Planner"));
 
         simpleValueFunctionVis((ValueFunction)planner, p);
         //manualValueFunctionVis((ValueFunction)planner, p);
+    }
+
+    public Planner loadPlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+
+        String caseName = buildCaseName(env.getEnvironmentName(), plannerFactory.getPlannerName());
+        Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashableStateFactory());
+        plannerFactory.loadFromFile(planner, outputPath + buildCaseName(caseName, "Planner"));
+        return planner;
+    }
+
+    public void visualizePlanner(IMyEnvironment env, Planner planner) {
+        Policy p = planner.planFromState(env.getInitialState());
+        simpleValueFunctionVis((ValueFunction)planner, p);
     }
 
     public void simpleValueFunctionVis(ValueFunction valueFunction, Policy p){
@@ -162,7 +176,8 @@ public class BasicBehavior {
     public void experimentAndPlotter(String outputPath){
 
         //different reward function for more structured performance plots
-        ((FactoredModel)domain.getModel()).setRf(new GoalBasedRF(this.goalCondition, 5.0, -0.1));
+        ((FactoredModel)domain.getModel()).setRf(
+                new GoalBasedRF(this.goalCondition, 5.0, -0.1));
 
         /*
          * Create factories for Q-learning agents
@@ -172,7 +187,14 @@ public class BasicBehavior {
                 return "Epsilon Q";
             }
             public LearningAgent generateAgent() {
-                return new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                return new QLearning(
+                        domain,
+                        0.999,
+                        hashingFactory,
+                        0.0,
+                        0.9,
+                        1000
+                );
             }
         };
 
@@ -181,7 +203,13 @@ public class BasicBehavior {
                 return "Optimistic Q";
             }
             public LearningAgent generateAgent() {
-                QLearning agent = new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                QLearning agent = new QLearning(
+                        domain,
+                        0.999, hashingFactory,
+                        0.0,
+                        0.9,
+                        1000
+                );
                 agent.setLearningPolicy(new GreedyQPolicy(agent));
                 return agent;
             }
@@ -203,9 +231,10 @@ public class BasicBehavior {
     public void experiment(String outputPath) {
 
         IMyEnvironment[] envs = {
+                new BoringEnvironment(),
                 new DelayedGratificationEnvironment(),
-                new LavaBridgeEnvironment(),
-                new SecretPassageEnvironment()
+//                new LavaBridgeEnvironment(),
+//                new SecretPassageEnvironment()
         };
 
         IMyPlannerFactory[] planners = {
@@ -219,7 +248,14 @@ public class BasicBehavior {
                         return "Epsilon Q";
                     }
                     public LearningAgent generateAgent() {
-                        return new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                        return new QLearning(
+                                domain,
+                                0.999,
+                                hashingFactory,
+                                0.0,
+                                0.9,
+                                1000
+                        );
                     }
                 },
                 new LearningAgentFactory() {
@@ -227,7 +263,14 @@ public class BasicBehavior {
                         return "Optimistic Q";
                     }
                     public LearningAgent generateAgent() {
-                        QLearning agent = new QLearning(domain, 0.999, hashingFactory, 0.0, 0.9, 1000);
+                        QLearning agent = new QLearning(
+                                domain,
+                                0.999,
+                                hashingFactory,
+                                0.0,
+                                0.9,
+                                1000
+                        );
                         agent.setLearningPolicy(new GreedyQPolicy(agent));
                         return agent;
                     }
@@ -242,6 +285,7 @@ public class BasicBehavior {
                 time to convergence
                 what the planner converged to
                  */
+                evaluatePlanner(myEnv, myPlanner, outputPath);
             }
             // TODO: DO THE EXPERIMENT WITH THE LEARNERS
             for (LearningAgentFactory agentFactory : learners) {
@@ -260,18 +304,18 @@ public class BasicBehavior {
         BasicBehavior example = new BasicBehavior();
         String outputPath = "output/";
 
-        example.evaluatePlanner(
-                new BoringEnvironment(),
-                PolicyIterationPlannerFactory.builder().build(),
-                outputPath
-        );
-        example.evaluatePlanner(
-                new BoringEnvironment(),
-                ValueIterationPlannerFactory.builder().build(),
-                outputPath
-        );
+//        example.evaluatePlanner(
+//                new BoringEnvironment(),
+//                PolicyIterationPlannerFactory.builder().build(),
+//                outputPath
+//        );
+//        example.evaluatePlanner(
+//                new BoringEnvironment(),
+//                ValueIterationPlannerFactory.builder().build(),
+//                outputPath
+//        );
 
-//        example.experiment(outputPath);
+        example.experiment(outputPath);
 
 //        example.experimentAndPlotter(outputPath);
 

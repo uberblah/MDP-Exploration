@@ -22,6 +22,16 @@ public class LavaBridgeEnvironment implements IMyEnvironment {
     }
 
     @Override
+    public OOSADomain getDomain() {
+        return null;
+    }
+
+    @Override
+    public State getInitialState() {
+        return null;
+    }
+
+    @Override
     public SimulatedEnvironment getSimulatedEnvironment() {
         GridWorldDomain gwdg = new GridWorldDomain(11, 3);
 
