@@ -11,6 +11,7 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.util.MyGridWorldRewardFunction;
 import lombok.Getter;
 
 import java.util.function.Function;
@@ -24,7 +25,7 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     private int height;
 
     private GridWorldDomain gwdg;
-    private GridWorldRewardFunction gwrf;
+    private MyGridWorldRewardFunction gwrf;
     private OOSADomain domain;
     private State initialState;
     private HashableStateFactory hashingFactory;
@@ -42,7 +43,7 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
         this.height = 2;
 
         gwdg = new GridWorldDomain(nOptions, 2);
-        gwrf = new GridWorldRewardFunction(nOptions, 2);
+        gwrf = new MyGridWorldRewardFunction(nOptions, 2);
         GridWorldTerminalFunction gwtf = new GridWorldTerminalFunction();
         gwtf.unmarkAllTerminalPositions();
         for (int x = 0; x < nOptions; x++) {
