@@ -76,9 +76,10 @@ public class BasicBehavior {
         //env.addObservers(observer);
     }
 
-    public void visualize(String outputpath){
-        Visualizer v = GridWorldVisualizer.getVisualizer(gwdg.getMap());
-        new EpisodeSequenceVisualizer(v, domain, outputpath);
+    public void visualize(IMyEnvironment env, String outputPath){
+        Path envPath = Paths.get(outputPath, env.getEnvironmentName());
+        Visualizer v = GridWorldVisualizer.getVisualizer(env.getMap());
+        new EpisodeSequenceVisualizer(v, env.getDomain(), envPath.toString());
     }
 
     public Path casePath(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath) {
@@ -228,7 +229,6 @@ public class BasicBehavior {
         IMyPlannerFactory[] planners = module.getPlanners();
 
         for (IMyEnvironment myEnv : envs) {
-            String envRoot = outputRoot + myEnv.getEnvironmentName() + "/";
             LearningAgentFactory[] learners = module.getLearners(myEnv.getDomain(), myEnv.getHashingFactory());
 
             for (IMyPlannerFactory myPlanner : planners) {
@@ -238,7 +238,7 @@ public class BasicBehavior {
                 time to convergence
                 what the planner converged to
                  */
-                evaluatePlanner(myEnv, myPlanner, envRoot);
+                evaluatePlanner(myEnv, myPlanner, outputRoot);
             }
             // TODO: DO THE EXPERIMENT WITH THE LEARNERS
             for (LearningAgentFactory agentFactory : learners) {
@@ -249,6 +249,8 @@ public class BasicBehavior {
                 what the learner converged to
                  */
             }
+
+            visualize(myEnv, outputRoot);
         }
     }
 
@@ -257,22 +259,9 @@ public class BasicBehavior {
         BasicBehavior example = new BasicBehavior();
         String outputPath = "output/";
 
-//        example.evaluatePlanner(
-//                new BoringEnvironment(),
-//                PolicyIterationPlannerFactory.builder().build(),
-//                outputPath
-//        );
-//        example.evaluatePlanner(
-//                new BoringEnvironment(),
-//                ValueIterationPlannerFactory.builder().build(),
-//                outputPath
-//        );
-
         example.experiment(outputPath);
 
 //        example.experimentAndPlotter(outputPath);
-
-        example.visualize(outputPath);
 
     }
 

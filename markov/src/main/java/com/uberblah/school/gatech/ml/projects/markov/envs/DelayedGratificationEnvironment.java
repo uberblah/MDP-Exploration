@@ -5,11 +5,9 @@ import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
-import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
-import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
-import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
+import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
@@ -28,8 +26,6 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     private GridWorldDomain gwdg;
     private GridWorldRewardFunction gwrf;
     private OOSADomain domain;
-    private TerminalFunction tf;
-    private StateConditionTest goalCondition;
     private State initialState;
     private HashableStateFactory hashingFactory;
     private SimulatedEnvironment env;
@@ -50,15 +46,15 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
         GridWorldTerminalFunction gwtf = new GridWorldTerminalFunction();
         gwtf.unmarkAllTerminalPositions();
         for (int x = 0; x < nOptions; x++) {
-            gwtf.markAsTerminalPosition(x, 1);
+            System.out.println(String.format("(%d,%d) -> %f", x, 0, -this.punishmentCurve.apply(x)));
+            System.out.println(String.format("(%d,%d) -> %f", x, 1, this.rewardCurve.apply(x)));
             gwrf.setReward(x, 0, -this.punishmentCurve.apply(x));
             gwrf.setReward(x, 1, this.rewardCurve.apply(x));
+            gwtf.markAsTerminalPosition(x, 1);
         }
-        tf = gwtf;
-        gwdg.setTf(tf);
-        gwdg.setRf(gwrf);
-        goalCondition = new TFGoalCondition(gwtf);
+        gwdg.setTf(gwtf);
         domain = gwdg.generateDomain();
+        ((FactoredModel)domain.getModel()).setRf(gwrf);
 
         initialState = new GridWorldState(new GridAgent(0, 0));
         hashingFactory = new SimpleHashableStateFactory();
@@ -67,11 +63,16 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     }
 
     public DelayedGratificationEnvironment() {
-        this(20, x -> 0.1, x -> 0.11 * (x + 1));
+        this(20, x -> 0.1, x -> 5.0 * (x + 1));
     }
 
     @Override
     public String getEnvironmentName() {
         return "DelayedGratification";
+    }
+
+    @Override
+    public int[][] getMap() {
+        return gwdg.getMap();
     }
 }

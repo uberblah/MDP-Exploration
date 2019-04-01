@@ -54,4 +54,9 @@ public class BoringEnvironment implements IMyEnvironment {
     public String getEnvironmentName() {
         return "Boring";
     }
+
+    @Override
+    public int[][] getMap() {
+        return gwdg.getMap();
+    }
 }

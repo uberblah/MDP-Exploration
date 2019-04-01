@@ -64,4 +64,9 @@ public class LavaBridgeEnvironment implements IMyEnvironment {
     public String getEnvironmentName() {
         return "LavaBridge";
     }
+
+    @Override
+    public int[][] getMap() {
+        return gwdg.getMap();
+    }
 }

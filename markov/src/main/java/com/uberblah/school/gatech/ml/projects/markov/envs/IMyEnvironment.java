@@ -11,6 +11,7 @@ public interface IMyEnvironment {
     State getInitialState();
     SimulatedEnvironment getEnv();
     HashableStateFactory getHashingFactory();
+    int[][] getMap();
     int getWidth();
     int getHeight();
 }
