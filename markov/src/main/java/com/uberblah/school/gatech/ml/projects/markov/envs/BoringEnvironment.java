@@ -1,5 +1,6 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
+import burlap.behavior.policy.GreedyQPolicy;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -15,6 +16,8 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import lombok.Getter;
 
 @Getter
@@ -58,5 +61,27 @@ public class BoringEnvironment implements IMyEnvironment {
     @Override
     public int[][] getMap() {
         return gwdg.getMap();
+    }
+
+    @Override
+    public IMyLearnerFactory[] getLearners() {
+        IMyLearnerFactory[] factories = {
+            QLearnerFactory.builder()
+                .learnerName("BasiQ")
+                .learningRate(0.99)
+                .build(),
+            QLearnerFactory.builder()
+                .learnerName("OptimistiQ")
+                .learningRate(0.99)
+                .qInit(5.0)
+                .learningPolicy(new GreedyQPolicy())
+                .build()
+        };
+        return factories;
+    }
+
+    @Override
+    public int getNumEpisodes() {
+        return 100;
     }
 }

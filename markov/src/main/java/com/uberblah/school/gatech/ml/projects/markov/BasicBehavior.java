@@ -11,7 +11,6 @@ import burlap.behavior.singleagent.auxiliary.performance.TrialMode;
 import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
-import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
@@ -24,6 +23,7 @@ import burlap.visualizer.Visualizer;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.util.MyExperimenter;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -81,20 +81,27 @@ public class BasicBehavior {
                 env.getDomain(), env.getHashingFactory()
         ).generateAgent();
 
-        //run learning for 50 episodes
         SimulatedEnvironment senv = env.getEnv();
         Episode bestEpisode = null;
-        for(int i = 0; i < 50; i++){
+        Episode lastEpisode = null;
+        Double bestScore = null;
+        for(int i = 0; i < env.getNumEpisodes(); i++){
             Episode e = agent.runLearningEpisode(senv);
-            bestEpisode = e;
+            lastEpisode = e;
 
-            System.out.println(i + ": " + e.maxTimeStep());
+            double score = e.rewardSequence.stream().reduce(0.0, (x,y) -> x + y);
+            if (bestScore == null || score > bestScore) {
+                bestScore = score;
+                bestEpisode = e;
+            }
 
             //reset environment for next learning episode
             senv.resetEnvironment();
         }
 
-        bestEpisode.write(casePath + ".episode");
+        System.out.println(String.format("CASE %s GOT %f", casePath, bestScore));
+        bestEpisode.write(casePath + ".bestEpisode");
+        lastEpisode.write(casePath + ".lastEpisode");
     }
 
     public void savePlanner(IMyEnvironment env, IMyPlannerFactory factory, Planner planner, String outputPath) {
@@ -126,23 +133,25 @@ public class BasicBehavior {
         LearningAgentFactory[] factories = new LearningAgentFactory[agents.length];
         for (int i = 0; i < agents.length; i++) {
             IMyLearnerFactory factoryFactory = agents[i];
+            System.out.println(String.format("ADDING LEARNER FACTORY %s", agents[i].getLearnerName()));
             factories[i] = factoryFactory.getLearnerFactory(env.getDomain(), env.getHashingFactory());
         }
+        System.out.println(String.format("NUMBER OF LEARNER FACTORIES: %d", factories.length));
 
-        LearningAlgorithmExperimenter exp = LearningAlgorithmExperimenter.class.getDeclaredConstructor(
+        LearningAlgorithmExperimenter exp = MyExperimenter.class.getDeclaredConstructor(
                 Environment.class,
                 int.class,
                 int.class,
                 LearningAgentFactory[].class
         ).newInstance(
-                env.getEnv(), 50, 100, factories
+                env.getEnv(), 50, env.getNumEpisodes(), factories
         );
 
         exp.setUpPlottingConfiguration(
                 500, 250, 2, 1000,
                 TrialMode.MOST_RECENT_AND_AVERAGE,
-                PerformanceMetric.CUMULATIVE_STEPS_PER_EPISODE,
-                PerformanceMetric.AVERAGE_EPISODE_REWARD
+                PerformanceMetric.CUMULATIVE_REWARD_PER_EPISODE,
+                PerformanceMetric.STEPS_PER_EPISODE
         );
 
         exp.startExperiment();
@@ -153,7 +162,6 @@ public class BasicBehavior {
 
         IMyEnvironment[] envs = module.getEnvironments();
         IMyPlannerFactory[] planners = module.getPlanners();
-        IMyLearnerFactory[] learners = module.getLearners();
 
         for (IMyEnvironment myEnv : envs) {
 
@@ -166,7 +174,7 @@ public class BasicBehavior {
                  */
                 evaluatePlanner(myEnv, myPlanner, outputRoot);
             }
-            // TODO: DO THE EXPERIMENT WITH THE LEARNERS
+            IMyLearnerFactory[] learners = myEnv.getLearners();
             experimentAndPlotter(myEnv, outputRoot, learners);
             for (IMyLearnerFactory factoryFactory : learners) {
                 /*
@@ -175,6 +183,7 @@ public class BasicBehavior {
                 time to convergence
                 what the learner converged to
                  */
+                evaluateLearner(myEnv, factoryFactory, outputRoot);
             }
 
             visualize(myEnv, outputRoot);

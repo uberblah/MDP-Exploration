@@ -1,7 +1,7 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
+import burlap.behavior.policy.EpsilonGreedy;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
-import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
@@ -11,6 +11,8 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.util.MyGridWorldRewardFunction;
 import lombok.Getter;
 
@@ -64,7 +66,7 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     }
 
     public DelayedGratificationEnvironment() {
-        this(20, x -> 0.1, x -> 5.0 * (x + 1));
+        this(20, x -> 0.1, x -> 0.2 * (x + 1));
     }
 
     @Override
@@ -75,5 +77,28 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     @Override
     public int[][] getMap() {
         return gwdg.getMap();
+    }
+
+    @Override
+    public IMyLearnerFactory[] getLearners() {
+        IMyLearnerFactory[] factories = {
+                QLearnerFactory.builder()
+                    .learnerName("BasiQ")
+                    .learningRate(0.3)
+                    .learningPolicy(new EpsilonGreedy(0.02))
+                    .build(),
+                QLearnerFactory.builder()
+                    .learnerName("OptimistiQ")
+                    .learningPolicy(new EpsilonGreedy(0.02))
+                    .learningRate(0.3)
+                    .qInit(10.0)
+                    .build()
+        };
+        return factories;
+    }
+
+    @Override
+    public int getNumEpisodes() {
+        return 1000;
     }
 }
