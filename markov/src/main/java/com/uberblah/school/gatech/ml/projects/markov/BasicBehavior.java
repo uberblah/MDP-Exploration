@@ -161,10 +161,10 @@ public class BasicBehavior {
     public void experiment(String outputRoot) throws Exception {
 
         IMyEnvironment[] envs = module.getEnvironments();
-        IMyPlannerFactory[] planners = module.getPlanners();
 
         for (IMyEnvironment myEnv : envs) {
 
+            IMyPlannerFactory[] planners = myEnv.getPlanners();
             for (IMyPlannerFactory myPlanner : planners) {
                 /*
                 TODO: TRAIN THE PLANNER
@@ -174,8 +174,10 @@ public class BasicBehavior {
                  */
                 evaluatePlanner(myEnv, myPlanner, outputRoot);
             }
+
             IMyLearnerFactory[] learners = myEnv.getLearners();
             experimentAndPlotter(myEnv, outputRoot, learners);
+
             for (IMyLearnerFactory factoryFactory : learners) {
                 /*
                 TODO: TRAIN THE LEARNER

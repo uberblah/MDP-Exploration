@@ -14,6 +14,9 @@ import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 import lombok.Getter;
 
 import java.util.function.Function;
@@ -79,5 +82,14 @@ public class SecretPassageEnvironment implements IMyEnvironment {
     @Override
     public int getNumEpisodes() {
         return 100;
+    }
+
+    @Override
+    public IMyPlannerFactory[] getPlanners() {
+        IMyPlannerFactory[] planners = {
+                ValueIterationPlannerFactory.builder().build(),
+                PolicyIterationPlannerFactory.builder().build()
+        };
+        return planners;
     }
 }

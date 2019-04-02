@@ -5,6 +5,7 @@ import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
 
 public interface IMyEnvironment {
     String getEnvironmentName();
@@ -16,5 +17,6 @@ public interface IMyEnvironment {
     int getWidth();
     int getHeight();
     IMyLearnerFactory[] getLearners();
+    IMyPlannerFactory[] getPlanners();
     int getNumEpisodes();
 }

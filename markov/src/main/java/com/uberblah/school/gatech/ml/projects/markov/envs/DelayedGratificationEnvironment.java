@@ -13,6 +13,9 @@ import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.util.MyGridWorldRewardFunction;
 import lombok.Getter;
 
@@ -21,6 +24,7 @@ import java.util.function.Function;
 @Getter
 public class DelayedGratificationEnvironment implements IMyEnvironment {
     private int nOptions;
+    private double gamma;
     private Function<Integer, Double> punishmentCurve;
     private Function<Integer, Double> rewardCurve;
     private int width;
@@ -33,14 +37,11 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     private HashableStateFactory hashingFactory;
     private SimulatedEnvironment env;
 
-    public DelayedGratificationEnvironment(
-            final int nOptions,
-            final Function<Integer, Double> punishmentCurve,
-            final Function<Integer, Double> rewardCurve
-    ) {
-        this.nOptions = nOptions;
-        this.punishmentCurve = punishmentCurve;
-        this.rewardCurve = rewardCurve;
+    public DelayedGratificationEnvironment() {
+        this.gamma = 0.99;
+        this.nOptions = 20;
+        this.punishmentCurve = x -> 0.1;
+        this.rewardCurve = x -> 0.15*x;
         this.width = nOptions;
         this.height = 2;
 
@@ -54,6 +55,7 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
             gwrf.setReward(x, 0, -this.punishmentCurve.apply(x));
             gwrf.setReward(x, 1, this.rewardCurve.apply(x));
             gwtf.markAsTerminalPosition(x, 1);
+            gwdg.vertical1DEastWall(1, 1, x);
         }
         gwdg.setTf(gwtf);
         domain = gwdg.generateDomain();
@@ -63,10 +65,6 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
         hashingFactory = new SimpleHashableStateFactory();
 
         env = new SimulatedEnvironment(domain, initialState);
-    }
-
-    public DelayedGratificationEnvironment() {
-        this(20, x -> 0.1, x -> 0.2 * (x + 1));
     }
 
     @Override
@@ -84,21 +82,36 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
         IMyLearnerFactory[] factories = {
                 QLearnerFactory.builder()
                     .learnerName("BasiQ")
-                    .learningRate(0.3)
+                    .gamma(gamma)
+                    .learningRate(0.01)
                     .learningPolicy(new EpsilonGreedy(0.02))
                     .build(),
                 QLearnerFactory.builder()
                     .learnerName("OptimistiQ")
+                    .gamma(gamma)
                     .learningPolicy(new EpsilonGreedy(0.02))
-                    .learningRate(0.3)
-                    .qInit(10.0)
+                    .learningRate(0.01)
+                    .qInit(rewardCurve.apply(nOptions-1)) // max reward
                     .build()
         };
         return factories;
     }
 
     @Override
+    public IMyPlannerFactory[] getPlanners() {
+        IMyPlannerFactory[] planners = {
+                ValueIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .build(),
+                PolicyIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .build()
+        };
+        return planners;
+    }
+
+    @Override
     public int getNumEpisodes() {
-        return 1000;
+        return 5000;
     }
 }

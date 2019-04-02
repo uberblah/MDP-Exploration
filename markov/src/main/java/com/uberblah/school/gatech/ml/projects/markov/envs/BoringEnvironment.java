@@ -18,6 +18,9 @@ import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 import lombok.Getter;
 
 @Getter
@@ -83,5 +86,18 @@ public class BoringEnvironment implements IMyEnvironment {
     @Override
     public int getNumEpisodes() {
         return 100;
+    }
+
+    @Override
+    public IMyPlannerFactory[] getPlanners() {
+        IMyPlannerFactory[] planners = {
+                ValueIterationPlannerFactory.builder()
+                        .gamma(0.9)
+                        .build(),
+                PolicyIterationPlannerFactory.builder()
+                        .gamma(0.9)
+                        .build()
+        };
+        return planners;
     }
 }
