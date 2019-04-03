@@ -112,6 +112,11 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
 
     @Override
     public int getNumEpisodes() {
-        return 5000;
+        return 3000;
+    }
+
+    @Override
+    public int getNumTrials() {
+        return 50;
     }
 }

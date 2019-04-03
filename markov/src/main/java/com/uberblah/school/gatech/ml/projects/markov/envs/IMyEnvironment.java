@@ -19,4 +19,5 @@ public interface IMyEnvironment {
     IMyLearnerFactory[] getLearners();
     IMyPlannerFactory[] getPlanners();
     int getNumEpisodes();
+    int getNumTrials();
 }

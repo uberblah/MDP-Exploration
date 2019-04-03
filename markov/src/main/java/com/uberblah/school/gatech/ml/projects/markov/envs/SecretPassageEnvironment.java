@@ -1,72 +1,90 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
+import burlap.behavior.policy.EpsilonGreedy;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
-import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
-import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
 import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
-import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.state.State;
+import burlap.mdp.singleagent.common.GoalBasedRF;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
+import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 import lombok.Getter;
 
-import java.util.function.Function;
-
 @Getter
 public class SecretPassageEnvironment implements IMyEnvironment {
+    private double gamma;
     private int width;
     private int height;
+    private int mid;
+    private int botMid;
+    private int topMid;
+    private double passivePunishment;
+    private double goalReward;
+    private int n;
 
     private GridWorldDomain gwdg;
-    private GridWorldRewardFunction gwrf;
+    private GridWorldTerminalFunction gwtf;
+    private TFGoalCondition goalCondition;
+    private GoalBasedRF rf;
     private OOSADomain domain;
-    private TerminalFunction tf;
-    private StateConditionTest goalCondition;
     private State initialState;
-    private SimulatedEnvironment env;
     private HashableStateFactory hashingFactory;
+    private SimulatedEnvironment env;
 
-    public SecretPassageEnvironment(
-            final int nOptions,
-            final Function<Integer, Double> punishmentCurve,
-            final Function<Integer, Double> rewardCurve
-    ) {
-        this.width = nOptions;
-        this.height = 2;
+    public SecretPassageEnvironment() {
+        this.gamma = 0.99;
+        this.n = 20;
+        this.width = (2 * n) + 1;
+        this.height = (2 * n) + 1;
+        this.mid = height / 2;
+        this.topMid = mid + 1;
+        this.botMid = mid - 1;
+        this.passivePunishment = 0.1;
+        this.goalReward = 0.0;
 
-        gwdg = new GridWorldDomain(nOptions, 2);
-        gwrf = new GridWorldRewardFunction(nOptions, 2);
-        GridWorldTerminalFunction gwtf = new GridWorldTerminalFunction();
+        gwdg = new GridWorldDomain(width, height);
+        gwtf = new GridWorldTerminalFunction();
         gwtf.unmarkAllTerminalPositions();
-        // TODO: set up Terminals, Walls and Rewards
-        tf = gwtf;
-        gwdg.setTf(tf);
-        gwdg.setRf(gwrf);
-        goalCondition = new TFGoalCondition(gwtf);
-        domain = gwdg.generateDomain();
 
-        initialState = new GridWorldState(new GridAgent(0, 0));
+        gwdg.vertical1DEastWall(topMid, topMid, 0);
+        gwdg.vertical1DEastWall(botMid, botMid, 0);
+        gwdg.vertical1DEastWall(topMid, topMid, width-2);
+        gwdg.vertical1DEastWall(botMid, botMid, width-2);
+        gwdg.horizontal1DNorthWall(1, width-2, topMid);
+        gwdg.horizontal1DNorthWall(1, width-2, botMid -1);
+
+        for (int x = 1; x < width - 3; x += 2) {
+            gwdg.vertical1DEastWall(mid, topMid, x);
+            gwdg.vertical1DEastWall(botMid, mid, x+1);
+        }
+
+        gwtf.markAsTerminalPosition(width-1, mid);
+
+        goalCondition = new TFGoalCondition(gwtf);
+        rf = new GoalBasedRF(goalCondition, goalReward, -passivePunishment);
+        gwdg.setTf(gwtf);
+        domain = gwdg.generateDomain();
+        ((FactoredModel)domain.getModel()).setRf(rf);
+
+        initialState = new GridWorldState(new GridAgent(0, mid));
         hashingFactory = new SimpleHashableStateFactory();
 
         env = new SimulatedEnvironment(domain, initialState);
     }
 
-    public SecretPassageEnvironment() {
-        this(20, x -> 0.1, x -> 0.11 * (x + 1));
-    }
-
     @Override
     public String getEnvironmentName() {
-        return "LavaBridge";
+        return "SecretPassage";
     }
 
     @Override
@@ -76,20 +94,44 @@ public class SecretPassageEnvironment implements IMyEnvironment {
 
     @Override
     public IMyLearnerFactory[] getLearners() {
-        return new IMyLearnerFactory[0];
-    }
-
-    @Override
-    public int getNumEpisodes() {
-        return 100;
+        IMyLearnerFactory[] factories = {
+                QLearnerFactory.builder()
+                        .learnerName("BasiQ")
+                        .gamma(gamma)
+                        .learningRate(0.1)
+                        .learningPolicy(new EpsilonGreedy(0.02))
+                        .build(),
+                QLearnerFactory.builder()
+                        .learnerName("OptimistiQ")
+                        .gamma(gamma)
+                        .learningPolicy(new EpsilonGreedy(0.02))
+                        .learningRate(0.1)
+                        .qInit(10 * passivePunishment) // max reward
+                        .build()
+        };
+        return factories;
     }
 
     @Override
     public IMyPlannerFactory[] getPlanners() {
         IMyPlannerFactory[] planners = {
-                ValueIterationPlannerFactory.builder().build(),
-                PolicyIterationPlannerFactory.builder().build()
+                ValueIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .build(),
+                PolicyIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .build()
         };
         return planners;
+    }
+
+    @Override
+    public int getNumEpisodes() {
+        return 200;
+    }
+
+    @Override
+    public int getNumTrials() {
+        return 5;
     }
 }

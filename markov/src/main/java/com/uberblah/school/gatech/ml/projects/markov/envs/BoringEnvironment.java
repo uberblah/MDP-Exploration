@@ -89,6 +89,11 @@ public class BoringEnvironment implements IMyEnvironment {
     }
 
     @Override
+    public int getNumTrials() {
+        return 50;
+    }
+
+    @Override
     public IMyPlannerFactory[] getPlanners() {
         IMyPlannerFactory[] planners = {
                 ValueIterationPlannerFactory.builder()

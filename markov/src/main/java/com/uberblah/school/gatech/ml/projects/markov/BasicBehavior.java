@@ -144,7 +144,7 @@ public class BasicBehavior {
                 int.class,
                 LearningAgentFactory[].class
         ).newInstance(
-                env.getEnv(), 50, env.getNumEpisodes(), factories
+                env.getEnv(), env.getNumTrials(), env.getNumEpisodes(), factories
         );
 
         exp.setUpPlottingConfiguration(
@@ -163,6 +163,9 @@ public class BasicBehavior {
         IMyEnvironment[] envs = module.getEnvironments();
 
         for (IMyEnvironment myEnv : envs) {
+            System.out.println(String.format("EXPERIMENTING WITH %s", myEnv.getEnvironmentName()));
+
+//            addObserver(myEnv);
 
             IMyPlannerFactory[] planners = myEnv.getPlanners();
             for (IMyPlannerFactory myPlanner : planners) {
@@ -176,6 +179,7 @@ public class BasicBehavior {
             }
 
             IMyLearnerFactory[] learners = myEnv.getLearners();
+            System.out.println(String.format("NUMBER OF LEARNERS = %d", learners.length));
             experimentAndPlotter(myEnv, outputRoot, learners);
 
             for (IMyLearnerFactory factoryFactory : learners) {
