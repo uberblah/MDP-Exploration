@@ -6,10 +6,8 @@ import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
 import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
-import burlap.mdp.auxiliary.stateconditiontest.TFGoalCondition;
 import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.state.State;
-import burlap.mdp.singleagent.common.GoalBasedRF;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
@@ -21,39 +19,33 @@ import com.uberblah.school.gatech.ml.projects.markov.planners.PolicyIterationPla
 import com.uberblah.school.gatech.ml.projects.markov.planners.ValueIterationPlannerFactory;
 import lombok.Getter;
 
-import java.util.function.Function;
-
 @Getter
-public class LavaBridgeEnvironment implements IMyEnvironment {
-    private int bridgeWidth;
-    private int bridgeLength;
-    private double successProbability;
-    private double passivePunishment;
-    private double lavaPunishment;
-    private Function<Integer, Double> goalRewardFunc;
-
+public class IceLakeEnvironment implements IMyEnvironment {
     private int width;
     private int height;
+    private double successProbability;
+    private double passivePunishment;
+    private double fallPunishment;
+    private double goalRewardFunc;
+    private double holeProbability;
+    private double boulderProbability;
 
     private GridWorldDomain gwdg;
     private GridWorldRewardFunction gwrf;
     private OOSADomain domain;
-    private TerminalFunction tf;
-    private StateConditionTest goalCondition;
     private State initialState;
     private SimulatedEnvironment env;
     private HashableStateFactory hashingFactory;
 
-    public LavaBridgeEnvironment() {
-        bridgeWidth = 3;
-        bridgeLength = 20;
+    public IceLakeEnvironment() {
         successProbability = 0.9;
         passivePunishment = 0.1;
-        lavaPunishment = 10.0;
-        goalRewardFunc = x -> 10.0 / (x + 1);
-
-        width = bridgeLength;
-        height = bridgeWidth;
+        fallPunishment = 5.0;
+        goalRewardFunc = 10.0;
+        width = 20;
+        height = 20;
+        holeProbability = 0.1;
+        boulderProbability = 0.1;
 
         gwdg = new GridWorldDomain(width, height);
         gwdg.setProbSucceedTransitionDynamics(successProbability);

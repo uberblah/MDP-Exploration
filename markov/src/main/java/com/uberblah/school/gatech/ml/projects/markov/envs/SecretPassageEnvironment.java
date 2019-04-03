@@ -42,7 +42,7 @@ public class SecretPassageEnvironment implements IMyEnvironment {
     private SimulatedEnvironment env;
 
     public SecretPassageEnvironment() {
-        this.gamma = 0.99;
+        this.gamma = 0.9;
         this.n = 20;
         this.width = (2 * n) + 1;
         this.height = (2 * n) + 1;
@@ -98,14 +98,14 @@ public class SecretPassageEnvironment implements IMyEnvironment {
                 QLearnerFactory.builder()
                         .learnerName("BasiQ")
                         .gamma(gamma)
-                        .learningRate(0.1)
+                        .learningRate(0.8)
                         .learningPolicy(new EpsilonGreedy(0.02))
                         .build(),
                 QLearnerFactory.builder()
                         .learnerName("OptimistiQ")
                         .gamma(gamma)
                         .learningPolicy(new EpsilonGreedy(0.02))
-                        .learningRate(0.1)
+                        .learningRate(0.8)
                         .qInit(10 * passivePunishment) // max reward
                         .build()
         };
@@ -127,7 +127,7 @@ public class SecretPassageEnvironment implements IMyEnvironment {
 
     @Override
     public int getNumEpisodes() {
-        return 200;
+        return 2000;
     }
 
     @Override

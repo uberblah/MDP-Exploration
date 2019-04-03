@@ -11,9 +11,9 @@ public class MyExperimentModule implements ExperimentModule {
     public IMyEnvironment[] getEnvironments() {
         IMyEnvironment[] envs = {
 //                new BoringEnvironment(),
-//                new DelayedGratificationEnvironment(),
+                new DelayedGratificationEnvironment(),
 //                new LavaBridgeEnvironment(),
-                new SecretPassageEnvironment()
+//                new SecretPassageEnvironment()
         };
         return envs;
     }

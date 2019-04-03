@@ -40,8 +40,8 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
     public DelayedGratificationEnvironment() {
         this.gamma = 0.99;
         this.nOptions = 20;
-        this.punishmentCurve = x -> 0.1;
-        this.rewardCurve = x -> 0.15*x;
+        this.punishmentCurve = x -> Math.pow(0.02, x*2);
+        this.rewardCurve = x -> Math.pow(1.05, x*2);
         this.width = nOptions;
         this.height = 2;
 
@@ -83,14 +83,14 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
                 QLearnerFactory.builder()
                     .learnerName("BasiQ")
                     .gamma(gamma)
-                    .learningRate(0.01)
-                    .learningPolicy(new EpsilonGreedy(0.02))
+                    .learningRate(1.0)
+                    .learningPolicy(new EpsilonGreedy(0.1))
                     .build(),
                 QLearnerFactory.builder()
                     .learnerName("OptimistiQ")
                     .gamma(gamma)
-                    .learningPolicy(new EpsilonGreedy(0.02))
-                    .learningRate(0.01)
+                    .learningRate(1.0)
+                    .learningPolicy(new EpsilonGreedy(0.0))
                     .qInit(rewardCurve.apply(nOptions-1)) // max reward
                     .build()
         };
@@ -112,7 +112,7 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
 
     @Override
     public int getNumEpisodes() {
-        return 3000;
+        return 100;
     }
 
     @Override
