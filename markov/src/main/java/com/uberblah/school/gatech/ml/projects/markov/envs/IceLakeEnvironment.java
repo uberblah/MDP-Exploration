@@ -1,14 +1,10 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
 import burlap.behavior.policy.GreedyQPolicy;
-import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
-import burlap.domain.singleagent.gridworld.GridWorldRewardFunction;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
 import burlap.domain.singleagent.gridworld.state.GridWorldState;
-import burlap.mdp.auxiliary.stateconditiontest.StateConditionTest;
-import burlap.mdp.core.TerminalFunction;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.mdp.singleagent.model.FactoredModel;
@@ -26,10 +22,14 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 @Getter
 public class IceLakeEnvironment implements IMyEnvironment {
+
+    public enum Size {
+        SMALL,
+        LARGE
+    }
 
     private enum Type {
         ICE,
@@ -37,6 +37,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
         WALL
     }
 
+    private Size size;
     private long seed;
     private int n;
     private int width;
@@ -57,17 +58,41 @@ public class IceLakeEnvironment implements IMyEnvironment {
     private SimulatedEnvironment env;
     private HashableStateFactory hashingFactory;
 
-    public IceLakeEnvironment() {
+    private void smallInit() {
+        n = 7;
+        goalReward = 3.0;
+        fallPunishment = 3.0;
+    }
+
+    private void largeInit() {
+        n = 30;
+        goalReward = 30.0;
+        fallPunishment = 30.0;
+    }
+
+    public IceLakeEnvironment(Size size) {
+
         seed = 0xdeadbeef;
         n = 5;
         successProbability = 0.9;
         passivePunishment = 0.1;
         fallPunishment = 10.0;
         goalReward = 10.0;
-        width = n;
-        height = n;
         holeProbability = 0.1;
         wallProbability = 0.1;
+
+        this.size = size;
+        switch (size) {
+            case SMALL:
+                smallInit();
+                break;
+            case LARGE:
+                largeInit();
+                break;
+        }
+
+        width = n;
+        height = n;
         iceProbability = 1.0 - (holeProbability + wallProbability);
 
         List<RandomChooser.Choice<Type>> choices = new ArrayList<>();

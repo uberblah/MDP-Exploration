@@ -14,7 +14,8 @@ public class MyExperimentModule implements ExperimentModule {
 //                new DelayedGratificationEnvironment(),
 //                new HeavenStaircaseEnvironment(),
 //                new SecretPassageEnvironment(),
-                new IceLakeEnvironment()
+                new IceLakeEnvironment(IceLakeEnvironment.Size.SMALL),
+                new IceLakeEnvironment(IceLakeEnvironment.Size.LARGE)
         };
         return envs;
     }
