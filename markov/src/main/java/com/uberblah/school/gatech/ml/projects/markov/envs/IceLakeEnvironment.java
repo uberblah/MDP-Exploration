@@ -103,7 +103,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
         choices.add(new RandomChooser.Choice<>(Type.ICE, iceProbability));
         choices.add(new RandomChooser.Choice<>(Type.HOLE, holeProbability));
         choices.add(new RandomChooser.Choice<>(Type.WALL, wallProbability));
-        chooser = new RandomChooser<>(choices);
+        chooser = new RandomChooser<>(choices, seed);
 
         gwdg = new GridWorldDomain(width, height);
         gwdg.setProbSucceedTransitionDynamics(successProbability);
