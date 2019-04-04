@@ -6,6 +6,7 @@ import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
+import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import lombok.Builder;
@@ -54,5 +55,21 @@ public class QLearnerFactory implements IMyLearnerFactory {
                 return agent;
             }
         };
+    }
+
+    @Override
+    public Policy planFromState(LearningAgent agent, State initialState) {
+        return ((QLearning)agent).planFromState(initialState);
+    }
+
+    @Override
+    public void saveToFile(LearningAgent agent, String filename) {
+        ((QLearning)agent).writeQTable(filename);
+    }
+
+    @Override
+    public LearningAgent loadFromFile(LearningAgent agent, String filename) {
+        ((QLearning)agent).loadQTable(filename);
+        return agent;
     }
 }

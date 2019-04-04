@@ -18,9 +18,9 @@ public class PolicyIterationPlannerFactory implements IMyPlannerFactory {
     @Builder.Default
     private double maxEvalDelta = 0.001;
     @Builder.Default
-    private int maxEvaluationIterations = 100;
+    private int maxEvaluationIterations = 10;
     @Builder.Default
-    private int maxPolicyIterations = 100;
+    private int maxPolicyIterations = 10;
 
     @Override
     public String getPlannerName() {

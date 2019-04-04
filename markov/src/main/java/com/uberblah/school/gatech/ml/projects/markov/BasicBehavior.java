@@ -11,6 +11,7 @@ import burlap.behavior.singleagent.auxiliary.performance.TrialMode;
 import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
+import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.singleagent.planning.Planner;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
@@ -24,10 +25,15 @@ import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.util.MyExperimenter;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BasicBehavior {
 
@@ -58,22 +64,34 @@ public class BasicBehavior {
         return Paths.get(outputPath, env.getEnvironmentName(), learnerFactory.getLearnerName());
     }
 
-    public void evaluatePlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
+    public Path envPath(IMyEnvironment env, String outputPath) {
+        return Paths.get(outputPath, env.getEnvironmentName());
+    }
+
+    public Policy evaluatePlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
         Path casePath = casePath(env, plannerFactory, outputPath);
         System.out.println(String.format("EVALUATING CASE %s", casePath));
 
         Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashingFactory());
-        Policy p = planner.planFromState(env.getInitialState());
+        Long startTime = System.nanoTime();
+        Policy policy = planner.planFromState(env.getInitialState());
+        Long endTime = System.nanoTime();
+        Long dt = endTime - startTime;
+        System.out.println(String.format("TRAINING TIME = %d", dt));
 
-        PolicyUtils.rollout(p, env.getInitialState(), env.getDomain().getModel())
-                .write(casePath + ".episode");
-        plannerFactory.saveToFile(planner, casePath + ".planner");
+        for (int i = 0; i < 10; i++) {
+            PolicyUtils.rollout(policy, env.getInitialState(), env.getDomain().getModel())
+                    .write(casePath + String.valueOf(i) + ".episode");
+        }
+        plannerFactory.saveToFile(planner, casePath + ".yaml");
 
         visualizePlanner(env, planner);
+
+        return policy;
         //manualValueFunctionVis((ValueFunction)planner, p);
     }
 
-    public void evaluateLearner(IMyEnvironment env, IMyLearnerFactory learnerFactory, String outputPath) {
+    public Policy evaluateLearner(IMyEnvironment env, IMyLearnerFactory learnerFactory, String outputPath) {
         Path casePath = casePath(env, learnerFactory, outputPath);
         System.out.println(String.format("EVALUATING CASE %s", casePath));
 
@@ -83,11 +101,10 @@ public class BasicBehavior {
 
         SimulatedEnvironment senv = env.getEnv();
         Episode bestEpisode = null;
-        Episode lastEpisode = null;
         Double bestScore = null;
+        Long startTime = System.nanoTime();
         for(int i = 0; i < env.getNumEpisodes(); i++){
             Episode e = agent.runLearningEpisode(senv);
-            lastEpisode = e;
 
             double score = e.rewardSequence.stream().reduce(0.0, (x,y) -> x + y);
             if (bestScore == null || score > bestScore) {
@@ -98,21 +115,32 @@ public class BasicBehavior {
             //reset environment for next learning episode
             senv.resetEnvironment();
         }
+        Long endTime = System.nanoTime();
+        Long dt = endTime - startTime;
+        System.out.println(String.format("TRAINING TIME = %d", dt));
+        learnerFactory.saveToFile(agent, casePath + ".yaml");
+
+        for(int i = 0; i < 10; i++) {
+            Episode e = agent.runLearningEpisode(senv);
+            senv.resetEnvironment();
+            e.write(casePath + String.valueOf(i) + ".episode");
+        }
 
         System.out.println(String.format("CASE %s GOT %f", casePath, bestScore));
         bestEpisode.write(casePath + ".bestEpisode");
-        lastEpisode.write(casePath + ".lastEpisode");
+
+        return learnerFactory.planFromState(agent, env.getInitialState());
     }
 
     public void savePlanner(IMyEnvironment env, IMyPlannerFactory factory, Planner planner, String outputPath) {
         Path casePath = casePath(env, factory, outputPath);
-        factory.saveToFile(planner, casePath + ".planner");
+        factory.saveToFile(planner, casePath + ".yaml");
     }
 
     public Planner loadPlanner(IMyEnvironment env, IMyPlannerFactory plannerFactory, String outputPath){
         Path casePath = casePath(env, plannerFactory, outputPath);
         Planner planner = plannerFactory.getPlanner(env.getDomain(), env.getHashingFactory());
-        plannerFactory.loadFromFile(planner, casePath + ".planner");
+        plannerFactory.loadFromFile(planner, casePath + ".yaml");
         return planner;
     }
 
@@ -123,12 +151,11 @@ public class BasicBehavior {
         ValueFunctionVisualizerGUI gui = GridWorldDomain.getGridWorldValueFunctionVisualization(
                 allStates, env.getWidth(), env.getHeight(), (ValueFunction)planner, p);
         gui.initGUI();
-
     }
 
     public void experimentAndPlotter(IMyEnvironment env, String outputRoot, IMyLearnerFactory[] agents) throws Exception {
 
-        Path experimentPath = Paths.get(outputRoot, env.getEnvironmentName());
+        Path experimentPath = envPath(env, outputRoot);
 
         LearningAgentFactory[] factories = new LearningAgentFactory[agents.length];
         for (int i = 0; i < agents.length; i++) {
@@ -168,6 +195,7 @@ public class BasicBehavior {
 //            addObserver(myEnv);
 
             IMyPlannerFactory[] planners = myEnv.getPlanners();
+            Map<String, Policy> policies = new HashMap<String, Policy>();
             for (IMyPlannerFactory myPlanner : planners) {
                 /*
                 TODO: TRAIN THE PLANNER
@@ -175,7 +203,7 @@ public class BasicBehavior {
                 time to convergence
                 what the planner converged to
                  */
-                evaluatePlanner(myEnv, myPlanner, outputRoot);
+                policies.put(myPlanner.getPlannerName(), evaluatePlanner(myEnv, myPlanner, outputRoot));
             }
 
             IMyLearnerFactory[] learners = myEnv.getLearners();
@@ -189,8 +217,14 @@ public class BasicBehavior {
                 time to convergence
                 what the learner converged to
                  */
-                evaluateLearner(myEnv, factoryFactory, outputRoot);
+                policies.put(factoryFactory.getLearnerName(), evaluateLearner(myEnv, factoryFactory, outputRoot));
             }
+
+            // write the policies all together so we can compare them by name
+            Path policyFilePath = Paths.get(envPath(myEnv, outputRoot).toString(), "policies.yaml");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(policyFilePath.toString()));
+            new Yaml().dump(policies, writer);
+            writer.close();
 
             visualize(myEnv, outputRoot);
         }
