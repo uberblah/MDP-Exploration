@@ -1,5 +1,6 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
+import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.GreedyQPolicy;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
@@ -49,6 +50,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
     private double holeProbability;
     private double wallProbability;
     private double iceProbability;
+    private double gamma;
 
     private RandomChooser<Type> chooser;
     private GridWorldDomain gwdg;
@@ -66,6 +68,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
 
     private void largeInit() {
         n = 30;
+        gamma = 0.999;
         goalReward = 30.0;
         fallPunishment = 30.0;
     }
@@ -80,6 +83,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
         goalReward = 10.0;
         holeProbability = 0.1;
         wallProbability = 0.1;
+        gamma = 0.99;
 
         this.size = size;
         switch (size) {
@@ -127,11 +131,15 @@ public class IceLakeEnvironment implements IMyEnvironment {
         gwtf.markAsTerminalPosition(width-1, height-1);
         gwdg.clearLocationOfWalls(width-1, height-1);
 
+        initialState = new GridWorldState(new GridAgent(0, 0));
+        gwdg.clearLocationOfWalls(0, 0);
+        gwtf.unmarkTerminalPosition(0, 0);
+        gwrf.setReward(0, 0, passivePunishment);
+
         gwdg.setTf(gwtf);
         domain = gwdg.generateDomain();
         ((FactoredModel)domain.getModel()).setRf(gwrf);
 
-        initialState = new GridWorldState(new GridAgent(0, 0));
         hashingFactory = new SimpleHashableStateFactory();
 
         env = new SimulatedEnvironment(domain, initialState);
@@ -151,14 +159,17 @@ public class IceLakeEnvironment implements IMyEnvironment {
     public IMyLearnerFactory[] getLearners() {
         IMyLearnerFactory[] factories = {
                 QLearnerFactory.builder()
+                        .gamma(gamma)
                         .learnerName("BasiQ")
-                        .learningRate(0.01)
+                        .learningRate(0.1)
+                        .learningPolicy(new EpsilonGreedy(0.1))
                         .build(),
                 QLearnerFactory.builder()
+                        .gamma(gamma)
                         .learnerName("OptimistiQ")
-                        .learningRate(0.01)
-                        .qInit(5.0)
-                        .learningPolicy(new GreedyQPolicy())
+                        .learningRate(0.1)
+                        .qInit(goalReward)
+                        .learningPolicy(new EpsilonGreedy(0.05))
                         .build()
         };
         return factories;
@@ -178,8 +189,16 @@ public class IceLakeEnvironment implements IMyEnvironment {
     public IMyPlannerFactory[] getPlanners() {
         IMyPlannerFactory[] planners = {
                 ValueIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .maxIterations(100)
+                        .maxDelta(0.01)
                         .build(),
                 PolicyIterationPlannerFactory.builder()
+                        .gamma(gamma)
+                        .maxPolicyIterations(100)
+                        .maxEvaluationIterations(1)
+                        .maxPIDelta(0.01)
+                        .maxEvalDelta(0.01)
                         .build()
         };
         return planners;
