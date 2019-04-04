@@ -3,6 +3,7 @@ package com.uberblah.school.gatech.ml.projects.markov;
 import com.uberblah.school.gatech.ml.projects.markov.envs.DelayedGratificationEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.HeavenStaircaseEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.envs.IceLakeEnvironment;
 
 public class MyExperimentModule implements ExperimentModule {
 
@@ -11,8 +12,9 @@ public class MyExperimentModule implements ExperimentModule {
         IMyEnvironment[] envs = {
 //                new BoringEnvironment(),
 //                new DelayedGratificationEnvironment(),
-                new HeavenStaircaseEnvironment(),
-//                new SecretPassageEnvironment()
+//                new HeavenStaircaseEnvironment(),
+//                new SecretPassageEnvironment(),
+                new IceLakeEnvironment()
         };
         return envs;
     }
