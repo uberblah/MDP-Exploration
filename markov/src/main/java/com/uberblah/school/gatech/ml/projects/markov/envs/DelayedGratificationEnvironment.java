@@ -11,6 +11,7 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.EpsilonGreedyPolicyProvider;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
@@ -84,13 +85,19 @@ public class DelayedGratificationEnvironment implements IMyEnvironment {
                     .learnerName("BasiQ")
                     .gamma(gamma)
                     .learningRate(1.0)
-                    .learningPolicy(new EpsilonGreedy(0.1))
+                    .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                            .epsilon(0.1)
+                            .build()
+                    )
                     .build(),
                 QLearnerFactory.builder()
                     .learnerName("OptimistiQ")
                     .gamma(gamma)
                     .learningRate(1.0)
-                    .learningPolicy(new EpsilonGreedy(0.0))
+                    .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                            .epsilon(0.0)
+                            .build()
+                    )
                     .qInit(rewardCurve.apply(nOptions-1)) // max reward
                     .build()
         };

@@ -16,6 +16,7 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.EpsilonGreedyPolicyProvider;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
@@ -72,12 +73,19 @@ public class BoringEnvironment implements IMyEnvironment {
             QLearnerFactory.builder()
                 .learnerName("BasiQ")
                 .learningRate(0.99)
+                .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                        .epsilon(0.1)
+                        .build()
+                )
                 .build(),
             QLearnerFactory.builder()
                 .learnerName("OptimistiQ")
                 .learningRate(0.99)
                 .qInit(5.0)
-                .learningPolicy(new GreedyQPolicy())
+                .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                        .epsilon(0.1)
+                        .build()
+                )
                 .build()
         };
         return factories;

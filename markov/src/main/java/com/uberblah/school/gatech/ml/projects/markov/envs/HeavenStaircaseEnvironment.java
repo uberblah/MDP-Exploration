@@ -12,6 +12,7 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.EpsilonGreedyPolicyProvider;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
@@ -110,14 +111,20 @@ public class HeavenStaircaseEnvironment implements IMyEnvironment {
                         .gamma(gamma)
                         .learnerName("BasiQ")
                         .learningRate(0.05)
-                        .learningPolicy(new EpsilonGreedy(0.1))
+                        .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                                .epsilon(0.1)
+                                .build()
+                        )
                         .build(),
                 QLearnerFactory.builder()
                         .gamma(gamma)
                         .learnerName("OptimistiQ")
                         .learningRate(0.05)
                         .qInit(10.0)
-                        .learningPolicy(new EpsilonGreedy(0.1))
+                        .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                                .epsilon(0.05)
+                                .build()
+                        )
                         .build()
         };
         return factories;

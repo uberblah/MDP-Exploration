@@ -99,12 +99,10 @@ public class SecretPassageEnvironment implements IMyEnvironment {
                         .learnerName("BasiQ")
                         .gamma(gamma)
                         .learningRate(0.8)
-                        .learningPolicy(new EpsilonGreedy(0.02))
                         .build(),
                 QLearnerFactory.builder()
                         .learnerName("OptimistiQ")
                         .gamma(gamma)
-                        .learningPolicy(new EpsilonGreedy(0.02))
                         .learningRate(0.8)
                         .qInit(10 * passivePunishment) // max reward
                         .build()

@@ -1,7 +1,6 @@
 package com.uberblah.school.gatech.ml.projects.markov.envs;
 
 import burlap.behavior.policy.EpsilonGreedy;
-import burlap.behavior.policy.GreedyQPolicy;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldTerminalFunction;
 import burlap.domain.singleagent.gridworld.state.GridAgent;
@@ -12,6 +11,7 @@ import burlap.mdp.singleagent.model.FactoredModel;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
+import com.uberblah.school.gatech.ml.projects.markov.learners.EpsilonGreedyPolicyProvider;
 import com.uberblah.school.gatech.ml.projects.markov.learners.IMyLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.learners.QLearnerFactory;
 import com.uberblah.school.gatech.ml.projects.markov.planners.IMyPlannerFactory;
@@ -43,6 +43,9 @@ public class IceLakeEnvironment implements IMyEnvironment {
     private int n;
     private int width;
     private int height;
+    private int nEpisodes;
+    private int nTrials;
+    private double maxDelta;
     private double successProbability;
     private double passivePunishment;
     private double fallPunishment;
@@ -62,15 +65,23 @@ public class IceLakeEnvironment implements IMyEnvironment {
 
     private void smallInit() {
         n = 7;
+        seed = 0xdeadbeef;
         goalReward = 3.0;
         fallPunishment = 3.0;
+        nEpisodes = 100;
+        nTrials = 50;
+        maxDelta = 0.1;
     }
 
     private void largeInit() {
-        n = 30;
+        n = 40;
+        seed = 0xdeadbeef;
         gamma = 0.999;
         goalReward = 30.0;
         fallPunishment = 30.0;
+        nEpisodes = 20000;
+        nTrials = 5;
+        maxDelta = 0.1;
     }
 
     public IceLakeEnvironment(Size size) {
@@ -162,14 +173,20 @@ public class IceLakeEnvironment implements IMyEnvironment {
                         .gamma(gamma)
                         .learnerName("BasiQ")
                         .learningRate(0.1)
-                        .learningPolicy(new EpsilonGreedy(0.1))
+                        .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                                .epsilon(0.1)
+                                .build()
+                        )
                         .build(),
                 QLearnerFactory.builder()
                         .gamma(gamma)
                         .learnerName("OptimistiQ")
                         .learningRate(0.1)
                         .qInit(goalReward)
-                        .learningPolicy(new EpsilonGreedy(0.05))
+                        .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
+                                .epsilon(0.05)
+                                .build()
+                        )
                         .build()
         };
         return factories;
@@ -177,7 +194,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
 
     @Override
     public int getNumEpisodes() {
-        return 1000;
+        return nEpisodes;
     }
 
     @Override
@@ -190,15 +207,15 @@ public class IceLakeEnvironment implements IMyEnvironment {
         IMyPlannerFactory[] planners = {
                 ValueIterationPlannerFactory.builder()
                         .gamma(gamma)
-                        .maxIterations(100)
-                        .maxDelta(0.01)
+                        .maxIterations(1000)
+                        .maxDelta(1.0)
                         .build(),
                 PolicyIterationPlannerFactory.builder()
                         .gamma(gamma)
-                        .maxPolicyIterations(100)
-                        .maxEvaluationIterations(1)
-                        .maxPIDelta(0.01)
-                        .maxEvalDelta(0.01)
+                        .maxPolicyIterations(333)
+                        .maxEvaluationIterations(2)
+                        .maxPIDelta(0.01 * goalReward)
+                        .maxEvalDelta(2.0)
                         .build()
         };
         return planners;

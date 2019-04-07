@@ -1,12 +1,10 @@
 package com.uberblah.school.gatech.ml.projects.markov.learners;
 
-import burlap.behavior.policy.EpsilonGreedy;
 import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
-import burlap.behavior.valuefunction.ValueFunction;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
@@ -34,7 +32,7 @@ public class QLearnerFactory implements IMyLearnerFactory {
     private final int maxEpisodeSize = 1000;
     @NonNull
     @Builder.Default
-    private final Policy learningPolicy = new EpsilonGreedy(0.05);
+    private final IMyLearningPolicyProvider learningPolicyProvider = new EpsilonGreedyPolicyProvider(0.1);
 
     @Override
     public LearningAgentFactory getLearnerFactory(OOSADomain domain, HashableStateFactory hashingFactory) {
@@ -49,10 +47,9 @@ public class QLearnerFactory implements IMyLearnerFactory {
                         hashingFactory,
                         qInit,
                         learningRate,
-                        learningPolicy,
                         maxEpisodeSize
                 );
-                agent.setLearningPolicy(new GreedyQPolicy(agent));
+                agent.setLearningPolicy(learningPolicyProvider.getLearningPolicy(agent));
                 return agent;
             }
         };

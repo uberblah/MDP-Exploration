@@ -1,9 +1,8 @@
-package com.uberblah.school.gatech.ml.projects.markov;
+package com.uberblah.school.gatech.ml.projects.markov.util;
 
-import com.uberblah.school.gatech.ml.projects.markov.envs.DelayedGratificationEnvironment;
-import com.uberblah.school.gatech.ml.projects.markov.envs.HeavenStaircaseEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IMyEnvironment;
 import com.uberblah.school.gatech.ml.projects.markov.envs.IceLakeEnvironment;
+import com.uberblah.school.gatech.ml.projects.markov.util.ExperimentModule;
 
 public class MyExperimentModule implements ExperimentModule {
 
