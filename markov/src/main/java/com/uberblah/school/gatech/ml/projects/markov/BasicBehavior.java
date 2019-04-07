@@ -76,7 +76,7 @@ public class BasicBehavior {
         }
         plannerFactory.saveToFile(planner, casePath + ".yaml");
 
-        visualizePlanner(env, planner);
+        visualizePlanner(env, plannerFactory, planner);
 
         return (ValueFunction)planner;
         //manualValueFunctionVis((ValueFunction)planner, p);
@@ -111,15 +111,20 @@ public class BasicBehavior {
         System.out.println(String.format("TRAINING TIME = %d", dt));
         learnerFactory.saveToFile(agent, casePath + ".yaml");
 
-
-
-        for(int i = 0; i < 10; i++) {
+        // switch to greedy policy to use the strategy we've learned
+        learnerFactory.switchToGreedy(agent);
+        int nTests = 100;
+        double meanReward = 0.0;
+        for(int i = 0; i < nTests; i++) {
             Episode e = agent.runLearningEpisode(senv);
+            double reward = e.rewardSequence.stream().reduce(0.0, (x,y) -> x+y);
+            meanReward += reward;
             senv.resetEnvironment();
             e.write(casePath + String.valueOf(i) + ".episode");
         }
+        meanReward /= nTests;
 
-        System.out.println(String.format("CASE %s GOT %f", casePath, bestScore));
+        System.out.println(String.format("CASE %s GOT MEAN=%f, MAX=%f", casePath, meanReward, bestScore));
         bestEpisode.write(casePath + ".bestEpisode");
 
         return (ValueFunction)agent;
@@ -137,7 +142,7 @@ public class BasicBehavior {
         return planner;
     }
 
-    public void visualizePlanner(IMyEnvironment env, Planner planner) {
+    public void visualizePlanner(IMyEnvironment env, IMyPlannerFactory factory, Planner planner) {
 //        visualizeRewards(env);
 
         Policy p = planner.planFromState(env.getInitialState());
@@ -150,6 +155,8 @@ public class BasicBehavior {
 
         ValueFunctionVisualizerGUI gui = GridWorldDomain.getGridWorldValueFunctionVisualization(
                 allStates, env.getWidth(), env.getHeight(), (ValueFunction)planner, p);
+//        gui.setName(pathy.casePath(env, factory).toString());
+        gui.setTitle(pathy.casePath(env, factory).toString());
         gui.initGUI();
     }
 

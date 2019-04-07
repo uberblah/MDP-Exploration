@@ -17,11 +17,8 @@ public class ValueIterationPlannerFactory implements IMyPlannerFactory {
     private double maxDelta = 0.001;
     @Builder.Default
     private int maxIterations = 100;
-
-    @Override
-    public String getPlannerName() {
-        return "ValueIteration";
-    }
+    @Builder.Default
+    private String plannerName = "ValueIteration";
 
     @Override
     public Planner getPlanner(SADomain domain, HashableStateFactory hashingFactory) {

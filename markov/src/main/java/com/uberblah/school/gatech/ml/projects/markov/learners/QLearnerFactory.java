@@ -5,6 +5,7 @@ import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
+import burlap.behavior.valuefunction.QProvider;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.oo.OOSADomain;
 import burlap.statehashing.HashableStateFactory;
@@ -53,6 +54,12 @@ public class QLearnerFactory implements IMyLearnerFactory {
                 return agent;
             }
         };
+    }
+
+    @Override
+    public LearningAgent switchToGreedy(LearningAgent agent) {
+        ((QLearning)agent).setLearningPolicy(new GreedyQPolicy((QProvider)agent));
+        return agent;
     }
 
     @Override

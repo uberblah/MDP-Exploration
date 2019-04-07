@@ -172,19 +172,19 @@ public class IceLakeEnvironment implements IMyEnvironment {
                 QLearnerFactory.builder()
                         .gamma(gamma)
                         .learnerName("BasiQ")
-                        .learningRate(0.1)
+                        .learningRate(0.2)
                         .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
-                                .epsilon(0.1)
+                                .epsilon(0.5)
                                 .build()
                         )
                         .build(),
                 QLearnerFactory.builder()
                         .gamma(gamma)
                         .learnerName("OptimistiQ")
-                        .learningRate(0.1)
-                        .qInit(goalReward)
+                        .learningRate(0.2)
+                        .qInit(Math.log(goalReward))
                         .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
-                                .epsilon(0.05)
+                                .epsilon(0.0)
                                 .build()
                         )
                         .build()
@@ -199,7 +199,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
 
     @Override
     public int getNumTrials() {
-        return 5;
+        return nTrials;
     }
 
     @Override
@@ -208,7 +208,12 @@ public class IceLakeEnvironment implements IMyEnvironment {
                 ValueIterationPlannerFactory.builder()
                         .gamma(gamma)
                         .maxIterations(1000)
-                        .maxDelta(1.0)
+                        .maxDelta(0.5)
+                        .build(),
+                ValueIterationPlannerFactory.builder()
+                        .plannerName("ExtremeVI")
+                        .maxIterations(1000)
+                        .maxDelta(0.001)
                         .build(),
                 PolicyIterationPlannerFactory.builder()
                         .gamma(gamma)

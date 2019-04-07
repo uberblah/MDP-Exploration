@@ -10,6 +10,7 @@ import burlap.statehashing.HashableStateFactory;
 public interface IMyLearnerFactory {
     String getLearnerName();
     LearningAgentFactory getLearnerFactory(OOSADomain domain, HashableStateFactory hashingFactory);
+    LearningAgent switchToGreedy(LearningAgent agent);
     Policy planFromState(LearningAgent agent, State initialState);
     void saveToFile(LearningAgent agent, String filename);
     LearningAgent loadFromFile(LearningAgent agent, String filename);
