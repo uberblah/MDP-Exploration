@@ -1,6 +1,5 @@
 output
 lib
 build
-gradle
-.gradle
 .idea
+.gradle
