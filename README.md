@@ -4,10 +4,21 @@
 
 # Running the code
 
-1. Install Gradle.
-2. Use `markov/build.gradle`'s `run` target.
+### On Unix
+```
+cd markov
+./gradlew run
+```
 
-Alternatively, it should be possible to use IntelliJ or Eclipse to load the project using `markov/build.gradle`.
+### On Windows
+```
+cd markov
+./gradlew.bat run
+```
+
+You will need to interrupt the program to stop it, once all the data have been generated and displayed.
+
+Alternatively, it should be possible to use IntelliJ or Eclipse to load the project.
 
 The data will be produced in the `markov/output` directory, but the running experiment will open up a series of windows to
 display that data in a human-readable manner, including all of the diagrams from the paper.
