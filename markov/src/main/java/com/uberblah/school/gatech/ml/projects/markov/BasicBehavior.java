@@ -71,13 +71,14 @@ public class BasicBehavior {
         Long dt = endTime - startTime;
         System.out.println(String.format("TRAINING TIME = %d", dt));
 
-        int nTests = 10;
+        int nTests = module.getNumTests();
         double meanReward = 0.0;
         for (int i = 0; i < nTests; i++) {
             try {
                 Episode e = PolicyUtils.rollout(policy, env.getInitialState(), env.getDomain().getModel());
                 meanReward += e.rewardSequence.stream().reduce(0.0, (x, y) -> x + y);
-                e.write(casePath + String.valueOf(i) + ".episode");
+                if(i < 10)
+                    e.write(casePath + String.valueOf(i) + ".episode");
             } catch (OutOfMemoryError e) {
                 System.out.println("RAN OUT OF MEMORY SAVING TEST RUN FOR PLANNER");
             }
@@ -123,14 +124,15 @@ public class BasicBehavior {
 
         // switch to greedy policy to use the strategy we've learned
         learnerFactory.switchToGreedy(agent);
-        int nTests = 100;
+        int nTests = module.getNumTests();
         double meanReward = 0.0;
         for(int i = 0; i < nTests; i++) {
             Episode e = agent.runLearningEpisode(senv);
             double reward = e.rewardSequence.stream().reduce(0.0, (x,y) -> x+y);
             meanReward += reward;
             senv.resetEnvironment();
-            e.write(casePath + String.valueOf(i) + ".episode");
+            if (i < 10)
+                e.write(casePath + String.valueOf(i) + ".episode");
         }
         meanReward /= nTests;
 

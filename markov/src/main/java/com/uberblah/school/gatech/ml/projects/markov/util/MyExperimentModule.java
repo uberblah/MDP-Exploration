@@ -7,6 +7,11 @@ import com.uberblah.school.gatech.ml.projects.markov.util.ExperimentModule;
 public class MyExperimentModule implements ExperimentModule {
 
     @Override
+    public int getNumTests() {
+        return 1000;
+    }
+
+    @Override
     public IMyEnvironment[] getEnvironments() {
         IMyEnvironment[] envs = {
 //                new BoringEnvironment(),

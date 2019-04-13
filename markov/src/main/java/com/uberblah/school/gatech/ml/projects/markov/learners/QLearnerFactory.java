@@ -1,5 +1,6 @@
 package com.uberblah.school.gatech.ml.projects.markov.learners;
 
+import burlap.behavior.learningrate.ConstantLR;
 import burlap.behavior.policy.GreedyQPolicy;
 import burlap.behavior.policy.Policy;
 import burlap.behavior.singleagent.learning.LearningAgent;
@@ -59,6 +60,7 @@ public class QLearnerFactory implements IMyLearnerFactory {
     @Override
     public LearningAgent switchToGreedy(LearningAgent agent) {
         ((QLearning)agent).setLearningPolicy(new GreedyQPolicy((QProvider)agent));
+        ((QLearning)agent).setLearningRateFunction(new ConstantLR(0.0));
         return agent;
     }
 
