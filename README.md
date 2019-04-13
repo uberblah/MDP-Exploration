@@ -1,16 +1,15 @@
+# Acquiring the code
 
-# Setting up a conda environment with the necessary libraries
-conda create -n mgrl3-ml-proj4 python=3
-conda activate mgrl3-ml-proj4
-conda install numpy matplotlib ipykernel jupyter
-pip install gym
-pip install pymdptoolbox
+`git clone git@github.com:uberblah/MDP-Exploration.git`
 
-# Library References
+# Running the code
 
-## gym
-- [top](https://gym.openai.com/docs/)
+1. Install Gradle.
+2. Use `markov/build.gradle`'s `run` target.
 
-## pymdptoolbox
-- [top](https://pymdptoolbox.readthedocs.io/en/latest/index.html)
-- [MDP solvers](https://pymdptoolbox.readthedocs.io/en/latest/api/mdp.html)
+Alternatively, it should be possible to use IntelliJ or Eclipse to load the project using `markov/build.gradle`.
+
+The data will be produced in the `markov/output` directory, but the running experiment will open up a series of windows to
+display that data in a human-readable manner, including all of the diagrams from the paper.
+
+I have included the paper in this repo, just for redundancy's sake, as `mgrl3-analysis.pdf`.
