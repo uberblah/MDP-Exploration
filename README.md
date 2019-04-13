@@ -24,3 +24,5 @@ The data will be produced in the `markov/output` directory, but the running expe
 display that data in a human-readable manner, including all of the diagrams from the paper.
 
 I have included the paper in this repo, just for redundancy's sake, as `mgrl3-analysis.pdf`.
+
+Some of the data are actually output to the terminal. Timestamps are in nanoseconds.
