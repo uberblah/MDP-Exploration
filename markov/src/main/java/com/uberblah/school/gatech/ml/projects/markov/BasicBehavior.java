@@ -12,6 +12,7 @@ import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisua
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.planning.Planner;
+import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;
 import burlap.behavior.valuefunction.ValueFunction;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
@@ -70,10 +71,19 @@ public class BasicBehavior {
         Long dt = endTime - startTime;
         System.out.println(String.format("TRAINING TIME = %d", dt));
 
-        for (int i = 0; i < 10; i++) {
-            PolicyUtils.rollout(policy, env.getInitialState(), env.getDomain().getModel())
-                    .write(casePath + String.valueOf(i) + ".episode");
+        int nTests = 10;
+        double meanReward = 0.0;
+        for (int i = 0; i < nTests; i++) {
+            try {
+                Episode e = PolicyUtils.rollout(policy, env.getInitialState(), env.getDomain().getModel());
+                meanReward += e.rewardSequence.stream().reduce(0.0, (x, y) -> x + y);
+                e.write(casePath + String.valueOf(i) + ".episode");
+            } catch (OutOfMemoryError e) {
+                System.out.println("RAN OUT OF MEMORY SAVING TEST RUN FOR PLANNER");
+            }
         }
+        meanReward /= (double)nTests;
+        System.out.println(String.format("MEAN REWARD PER EPISODE = %f", meanReward));
         plannerFactory.saveToFile(planner, casePath + ".yaml");
 
         visualizePlanner(env, plannerFactory, planner);

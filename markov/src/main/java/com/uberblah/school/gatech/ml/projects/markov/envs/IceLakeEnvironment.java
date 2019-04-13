@@ -172,9 +172,9 @@ public class IceLakeEnvironment implements IMyEnvironment {
                 QLearnerFactory.builder()
                         .gamma(gamma)
                         .learnerName("BasiQ")
-                        .learningRate(0.2)
+                        .learningRate(0.5)
                         .learningPolicyProvider(EpsilonGreedyPolicyProvider.builder()
-                                .epsilon(0.5)
+                                .epsilon(0.05)
                                 .build()
                         )
                         .build(),
@@ -208,19 +208,14 @@ public class IceLakeEnvironment implements IMyEnvironment {
                 ValueIterationPlannerFactory.builder()
                         .gamma(gamma)
                         .maxIterations(1000)
-                        .maxDelta(0.5)
-                        .build(),
-                ValueIterationPlannerFactory.builder()
-                        .plannerName("ExtremeVI")
-                        .maxIterations(1000)
                         .maxDelta(0.001)
                         .build(),
                 PolicyIterationPlannerFactory.builder()
                         .gamma(gamma)
                         .maxPolicyIterations(333)
-                        .maxEvaluationIterations(2)
-                        .maxPIDelta(0.01 * goalReward)
-                        .maxEvalDelta(2.0)
+                        .maxEvaluationIterations(1)
+                        .maxPIDelta(0.05 * goalReward)
+                        .maxEvalDelta(0.0)
                         .build()
         };
         return planners;
