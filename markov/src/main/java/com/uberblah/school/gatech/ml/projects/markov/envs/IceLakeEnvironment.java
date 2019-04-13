@@ -68,7 +68,7 @@ public class IceLakeEnvironment implements IMyEnvironment {
         seed = 0xdeadbeef;
         goalReward = 3.0;
         fallPunishment = 3.0;
-        nEpisodes = 100;
+        nEpisodes = 200;
         nTrials = 50;
         maxDelta = 0.1;
     }
