@@ -1,3 +1,7 @@
+# Acquiring the code online
+
+`git clone git@github.com:uberblah/MDP-Exploration.git`
+
 # Running the code
 
 1. Install Gradle.
